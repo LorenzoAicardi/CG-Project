@@ -29,4 +29,4 @@ $ cmake --build .
 
 #### CLion
 
-Integrating with CLion is pretty easy thanks to CMake, just clone the repo and setup build parameters in "Settings" -> "Build, Execution, Deployment" -> "CMake"
+Integrating with CLion is pretty easy thanks to CMake, just clone the repo and setup build parameters in `"Settings" > "Build, Execution, Deployment" > "CMake"`
