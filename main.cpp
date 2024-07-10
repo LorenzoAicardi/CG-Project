@@ -15,14 +15,19 @@ struct UniformBlock {
 	alignas(16) glm::mat4 mvpMat;
 };
 
+struct GlobalUniformBlock {
+    alignas(16) glm::vec3 lightDir;
+    alignas(16) glm::vec4 lightColor;
+    alignas(16) glm::vec3 eyePos;
+    alignas(16) glm::vec4 eyeDir;
+};
+
 // The vertices data structures
 // Example
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec2 UV;
 };
-
-
 
 
 
@@ -46,14 +51,24 @@ class MeshLoader : public BaseProject {
 	// Please note that Model objects depends on the corresponding vertex structure
 	// Models
 	Model<Vertex> M1;
+    Model<Vertex> M2;
+    Model<Vertex> M3;
+    Model<Vertex> M4;
 	// Descriptor sets
 	DescriptorSet DS1;
+    DescriptorSet DS2;
+    DescriptorSet DS3;
+    DescriptorSet DS4;
 	// Textures
 	Texture TFurniture;
-
+    Texture TFurniture1;
+    Texture TFurniture3;
+    Texture TFurniture4;
 	// C++ storage for uniform variables
 	UniformBlock ubo1;
-
+    UniformBlock ubo2;
+    UniformBlock ubo3;
+    UniformBlock ubo4;
 	// Other application parameters
 
 	// Here you set the main application parameters
@@ -61,14 +76,14 @@ class MeshLoader : public BaseProject {
 		// window size, titile and initial background
 		windowWidth = 1920;
 		windowHeight = 1080;
-		windowTitle = "Mesh Loader";
+		windowTitle = "Project";
     	windowResizable = GLFW_TRUE;
 		initialBackgroundColor = {0.0f, 0.005f, 0.01f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 1;
-		texturesInPool = 1;
-		setsInPool = 1;
+		uniformBlocksInPool = 4;
+		texturesInPool = 4;
+		setsInPool = 4;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -127,14 +142,12 @@ class MeshLoader : public BaseProject {
 				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
 				         sizeof(glm::vec2), UV}
 				});
-
 		// Pipelines [Shader couples]
 		// The second parameter is the pointer to the vertex definition
 		// Third and fourth parameters are respectively the vertex and fragment shaders
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
 		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", {&DSL});
-
 		// Models, textures and Descriptors (values assigned to the uniforms)
 
 		// Create models
@@ -142,19 +155,22 @@ class MeshLoader : public BaseProject {
 		// The third parameter is the file name
 		// The last is a constant specifying the file type: currently only OBJ or GLTF
 		M1.init(this,   &VD, "models/lamp_post.mgcg", MGCG);
-
+        M2.init(this, &VD, "models/spot_lamp.mgcg", MGCG);
+        M3.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
+        M4.init(this, &VD, "models/red_column.mgcg", MGCG);
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this,   "textures/Textures_Forniture.png");
-
-		// Init local variables
+        TFurniture1.init(this, "textures/Textures_Forniture.png");
+        TFurniture3.init(this, "textures/Textures_Forniture.png");
+        TFurniture4.init(this, "textures/Textures_Forniture.png");
+        // Init local variables
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
 		P.create();
-
 		// Here you define the data set
 		DS1.init(this, &DSL, {
 		// the second parameter, is a pointer to the Uniform Set Layout of this set
@@ -164,8 +180,20 @@ class MeshLoader : public BaseProject {
 		// third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
 		// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &TFurniture}
-				});
+					{1, TEXTURE, 0, &TFurniture},
+        });
+        DS2.init(this, &DSL, {
+                {0, UNIFORM, sizeof(UniformBlock), nullptr},
+                {1, TEXTURE, 0, &TFurniture1},
+        });
+        DS3.init(this, &DSL, {
+                {0, UNIFORM, sizeof(UniformBlock), nullptr},
+                {1, TEXTURE, 0, &TFurniture3},
+        });
+        DS4.init(this, &DSL, {
+                {0, UNIFORM, sizeof(UniformBlock), nullptr},
+                {1, TEXTURE, 0, &TFurniture4}
+        });
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -173,8 +201,11 @@ class MeshLoader : public BaseProject {
 	void pipelinesAndDescriptorSetsCleanup() {
 		// Cleanup pipelines
 		P.cleanup();
-
 		// Cleanup dataset.cleanup();
+        DS1.cleanup();
+        DS2.cleanup();
+        DS3.cleanup();
+        DS4.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -184,14 +215,17 @@ class MeshLoader : public BaseProject {
 	void localCleanup() {
 		// Cleanup textures
 		TFurniture.cleanup();
-
+        TFurniture1.cleanup();
+        TFurniture3.cleanup();
+        TFurniture4.cleanup();
 		// Cleanup models
 		M1.cleanup();
-
+        M2.cleanup();
+        M3.cleanup();
+        M4.cleanup();
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
-
-		// Destroies the pipelines
+		// Destroys the pipelines
 		P.destroy();
 	}
 
@@ -206,7 +240,26 @@ class MeshLoader : public BaseProject {
 
 		// binds the data set
 		DS1.bind(commandBuffer, P, 0, currentImage);
-		// For a Dataset object, this command binds the corresponing dataset
+        M1.bind(commandBuffer);
+        vkCmdDrawIndexed(commandBuffer,
+                         static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
+
+
+        DS2.bind(commandBuffer, P, 0, currentImage);
+        M2.bind(commandBuffer);
+        vkCmdDrawIndexed(commandBuffer,
+                         static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
+
+        DS3.bind(commandBuffer, P, 0, currentImage);
+        M3.bind(commandBuffer);
+        vkCmdDrawIndexed(commandBuffer,
+                         static_cast<uint32_t>(M3.indices.size()), 1, 0, 0, 0);
+
+        DS4.bind(commandBuffer, P, 0, currentImage);
+        M4.bind(commandBuffer);
+        vkCmdDrawIndexed(commandBuffer,
+                         static_cast<uint32_t>(M4.indices.size()), 1, 0, 0, 0);
+        // For a Dataset object, this command binds the corresponing dataset
 		// to the command buffer and pipeline passed in its first and second parameters.
 		// The third parameter is the number of the set being bound
 		// As described in the Vulkan tutorial, a different dataset is required for each image in the swap chain.
@@ -214,18 +267,25 @@ class MeshLoader : public BaseProject {
 		// of the current image in the swap chain, passed in its last parameter
 
 		// binds the model
-		M1.bind(commandBuffer);
 		// For a Model object, this command binds the corresponing index and vertex buffer
 		// to the command buffer passed in its parameter
 
 		// record the drawing command in the command buffer
-		vkCmdDrawIndexed(commandBuffer,
-				static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
 		// the second parameter is the number of indexes to be drawn. For a Model object,
 		// this can be retrieved with the .indices.size() method.
 	}
 
-	// Here is where you update the uniforms.
+    glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 10.0f);
+    glm::vec3 camPos    = rocketPosition + glm::vec3(6,3,10) / 2.0f;
+    glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0,1,0));
+
+    glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    const float ROT_SPEED = glm::radians(120.0f);
+    const float MOVE_SPEED = 2.5f;
+    glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
+    glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
+    glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
+    // Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		// Standard procedure to quit when the ESC key is pressed
@@ -234,43 +294,103 @@ class MeshLoader : public BaseProject {
 		}
 
 		// Integration with the timers and the controllers
+
+        /*
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
-		// getSixAxis() is defined in Starter.hpp in the base class.
+         */
+
+        // getSixAxis() is defined in Starter.hpp in the base class.
 		// It fills the float point variable passed in its first parameter with the time
 		// since the last call to the procedure.
 		// It fills vec3 in the second parameters, with three values in the -1,1 range corresponding
-		// to motion (with left stick of the gamepad, or ASWD + RF keys on the keyboard)
+		// to motion (with left stick of the gamepad, or WASD + RF keys on the keyboard)
 		// It fills vec3 in the third parameters, with three values in the -1,1 range corresponding
 		// to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
 		// If fills the last boolean variable with true if fire has been pressed:
 		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
 
+        static float CamPitch = glm::radians(20.0f);
+        static float CamYaw   = M_PI;
+        static float CamDist  = 10.0f;
+        static float CamRoll  = 0.0f;
+        const glm::vec3 CamTargetDelta = glm::vec3(0,2,0);
+        const glm::vec3 Cam1stPos = glm::vec3(0, 0, 10);
 
+        static glm::vec3 dampedCamPos = CamPos;
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		const float FOVy = glm::radians(90.0f);
-		const float nearPlane = 0.1f;
-		const float farPlane = 100.0f;
+		const float nearPlane = 0.01f;
+		const float farPlane = 1000.0f;
 
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;
-		glm::vec3 camTarget = glm::vec3(0,0,0);
-		glm::vec3 camPos    = camTarget + glm::vec3(6,3,10) / 2.0f;
-		glm::mat4 View = glm::lookAt(camPos, camTarget, glm::vec3(0,1,0));
-
 
 		glm::mat4 World;
 
-		World = glm::translate(glm::mat4(1), glm::vec3(-3, 0, 0));
+		World = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
 		ubo1.mvpMat = Prj * View * World;
 		DS1.map(currentImage, &ubo1, sizeof(ubo1), 0);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
+
+        World = glm::translate(glm::mat4(1), glm::vec3(1, 0, 0));
+        ubo2.mvpMat = Prj * View * World;
+        DS2.map(currentImage, &ubo2, sizeof(ubo2), 0);
+
+        World = glm:: translate(glm::mat4(1), glm::vec3(5, 0, 0));
+        ubo3.mvpMat = Prj * View * World;
+        DS3.map(currentImage, &ubo3, sizeof(ubo3), 0);
+
+        World = glm:: translate(glm::mat4(1), rocketPosition);
+        ubo4.mvpMat = Prj * View * World;
+        DS4.map(currentImage, &ubo4, sizeof(ubo4), 0);
+
+        float deltaT = 0.016f;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            rocketPosition.z -= ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            rocketPosition.z += ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            rocketPosition.x -= ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            rocketPosition.x += ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            rocketPosition.y += ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+            rocketPosition.y -= ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            rotation.y -= ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            rotation.y += ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            rotation.x -= ROT_SPEED * deltaT;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            rotation.x += ROT_SPEED * deltaT;
+        }
+
+        //glm::mat4 model = glm::mat4(1.0f);
+        //glm::mat4 Mv =  glm::inverse(glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)));
+
+        View = glm::lookAt(rocketPosition + glm::vec3(0,3,3), rocketPosition, glm::vec3(0,1,0));
+        ubo4.mvpMat = Prj * View * glm::translate(glm::mat4(1.0f), rocketPosition);
+        DS4.map(currentImage, &ubo4, sizeof(ubo4), 0);
+
 	}
 };
 
