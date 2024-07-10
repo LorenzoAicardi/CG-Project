@@ -16,7 +16,7 @@ Also, [Ninja](https://ninja-build.org/) is recommended for better build performa
 $ mkdir -p && cd build
 
 $ cmake \
-  -DGLFW_DIR="/usr/include/GLFW" \
+  -DGLFW_INCLUDE_DIR="/usr/include/GLFW" \
   -DGLFW_LIB="/usr/lib64/libglfw.so" \
   -DCMAKE_BUILD_TYPE=[Debug | Release] \
   -G Ninja
