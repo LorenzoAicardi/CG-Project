@@ -1,0 +1,17 @@
+Checks: '-*, bugprone-*, cppcoreguidelines-*, readability-identifier-naming,
+        readability-simplify-boolean-expr, readability-function-cognitive-complexity,
+        -cppcoreguidelines-pro-bounds-pointer-arithmetic, -readability-magic-numbers'
+CheckOptions:
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.LocalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstantMemberCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ClassConstantCase
+    value: UPPER_CASE
+FormatStyle: file
