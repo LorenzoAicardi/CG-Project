@@ -525,7 +525,7 @@ struct AnimationChannel {
   int target_node{-1};      // optional index of the node to target (alternative
                             // target should be provided by extension)
   std::string target_path;  // required with standard values of ["translation",
-                            // "rotation", "scale", "weights"]
+                            // "rocketRotation", "scale", "weights"]
   Value extras;
   ExtensionMap extensions;
   Value target_extras;
@@ -5112,7 +5112,7 @@ static bool ParseNode(Node *node, std::string *err, const detail::json &o,
 
   // Matrix and T/R/S are exclusive
   if (!ParseNumberArrayProperty(&node->matrix, err, o, "matrix", false)) {
-    ParseNumberArrayProperty(&node->rotation, err, o, "rotation", false);
+    ParseNumberArrayProperty(&node->rotation, err, o, "rocketRotation", false);
     ParseNumberArrayProperty(&node->scale, err, o, "scale", false);
     ParseNumberArrayProperty(&node->translation, err, o, "translation", false);
   }
@@ -7796,7 +7796,7 @@ static void SerializeGltfNode(const Node &node, detail::json &o) {
     SerializeNumberArrayProperty<double>("translation", node.translation, o);
   }
   if (node.rotation.size() > 0) {
-    SerializeNumberArrayProperty<double>("rotation", node.rotation, o);
+    SerializeNumberArrayProperty<double>("rocketRotation", node.rotation, o);
   }
   if (node.scale.size() > 0) {
     SerializeNumberArrayProperty<double>("scale", node.scale, o);

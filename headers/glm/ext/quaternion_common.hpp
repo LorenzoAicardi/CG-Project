@@ -38,7 +38,7 @@ namespace glm
 	/// @{
 
 	/// Spherical linear interpolation of two quaternions.
-	/// The interpolation is oriented and the rotation is performed at constant speed.
+	/// The interpolation is oriented and the rocketRotation is performed at constant speed.
 	/// For short path spherical linear interpolation, use the slerp function.
 	///
 	/// @param x A quaternion
@@ -65,7 +65,7 @@ namespace glm
 	GLM_FUNC_DECL qua<T, Q> lerp(qua<T, Q> const& x, qua<T, Q> const& y, T a);
 
 	/// Spherical linear interpolation of two quaternions.
-	/// The interpolation always take the short path and the rotation is performed at constant speed.
+	/// The interpolation always take the short path and the rocketRotation is performed at constant speed.
 	///
 	/// @param x A quaternion
 	/// @param y A quaternion
