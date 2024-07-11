@@ -51,6 +51,7 @@ protected:
 	Model<Vertex> MWallE;
 	Model<Vertex> MWallS;
 	Model<Vertex> MWallW;
+	Model<Vertex> MWindow;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -58,13 +59,10 @@ protected:
 	DescriptorSet DSWallE;
 	DescriptorSet DSWallS;
 	DescriptorSet DSWallW;
+	DescriptorSet DSWindow;
 
 	// Textures
-	Texture TFurniture1;
-	Texture TFurniture2;
-	Texture TFurniture3;
-	Texture TFurniture4;
-	Texture TFurniture5;
+	Texture TFurniture;
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
@@ -132,11 +130,7 @@ protected:
 
 		// Create the textures
 		// The second parameter is the file name
-		TFurniture1.init(this, "textures/Textures_Forniture.png");
-		TFurniture2.init(this, "textures/Textures_Forniture.png");
-		TFurniture3.init(this, "textures/Textures_Forniture.png");
-		TFurniture4.init(this, "textures/Textures_Forniture.png");
-		TFurniture5.init(this, "textures/Textures_Forniture.png");
+		TFurniture.init(this, "textures/Textures_Forniture.png");
 
 		// Init local variables
 	}
@@ -155,23 +149,23 @@ protected:
 		               // third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
 		               // fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 		               {0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		               {1, TEXTURE, 0, &TFurniture1},
+		               {1, TEXTURE, 0, &TFurniture},
 		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallN.init(this, &DSL,
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture2},
+		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallE.init(this, &DSL,
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture3},
+		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallS.init(this, &DSL,
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture4},
+		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallW.init(this, &DSL,
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture5},
+		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
@@ -195,11 +189,7 @@ protected:
 	// methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() override {
 		// Cleanup textures
-		TFurniture1.cleanup();
-		TFurniture2.cleanup();
-		TFurniture3.cleanup();
-		TFurniture4.cleanup();
-		TFurniture5.cleanup();
+		TFurniture.cleanup();
 
 		// Cleanup models
 		MRocket.cleanup();
