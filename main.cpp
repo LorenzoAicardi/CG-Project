@@ -285,14 +285,13 @@ protected:
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
-	glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	const float ROT_SPEED = glm::radians(120.0f);
-	const float MOVE_SPEED = 2.5f;
-	glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
-	glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
-	glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
-
-	// Here is where you update the uniforms.
+    glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    const float ROT_SPEED = 50.0f;
+    const float MOVE_SPEED = 2.5f;
+    glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
+    glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
+    glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
+    // Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
 		// Standard procedure to quit when the ESC key is pressed
@@ -330,8 +329,8 @@ protected:
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		const float FOVy = glm::radians(90.0f);
-		const float nearPlane = 0.01f;
-		const float farPlane = 1000.0f;
+		const float nearPlane = 0.1f;
+		const float farPlane = 100.0f;
 
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;
@@ -391,21 +390,41 @@ protected:
 			rocketPosition.y -= MOVE_SPEED * deltaT;
 		}
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			rotation.y -= ROT_SPEED * deltaT;
-		}
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			rotation.y += ROT_SPEED * deltaT;
-		}
-		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 			rotation.x -= ROT_SPEED * deltaT;
 		}
-		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 			rotation.x += ROT_SPEED * deltaT;
 		}
+		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			rotation.y -= ROT_SPEED * deltaT;
+		}
+		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			rotation.y += ROT_SPEED * deltaT;
+		}
 
-		View = glm::lookAt(rocketPosition + glm::vec3(0, 3, 3), rocketPosition,
-		                   glm::vec3(0, 1, 0));
-		World = glm::translate(glm::mat4(1.0f), rocketPosition);
+        if (rotation.y > 89.0f)
+            rotation.y = 89.0f;
+        if (rotation.y < -89.0f)
+            rotation.y = -89.0f;
+
+        if(rotation.x > 89.0f)
+            rotation.x = 89.0f;
+        if(rotation.x < -89.0f)
+            rotation.x = -89.0f;
+
+        //glm::mat4 model = glm::mat4(1.0f);
+        //glm::mat4 Mv =  glm::inverse(glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)));
+        float radius = 3.0f;
+        float camx = sin(glm::radians(rotation.x)) * radius;
+        float camz = cos(glm::radians(rotation.x)) * radius;
+        float camy = sin (glm::radians(rotation.y)) * radius; // + 3?
+        View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
+                           rocketPosition,
+                           glm::vec3(0,1,0));
+        World = //glm::rotate(
+                glm::translate(glm::mat4(1.0f), rocketPosition);//, rotation.x, glm::vec3(0.0f,1.0f,0.0f)
+                //);
+
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 	}
