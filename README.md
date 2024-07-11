@@ -9,7 +9,7 @@ Nicolas Benatti _nicolas.benatti@mail.polimi.it_
 
 ## Building & Running
 
-The project uses the CMake build system, Vulkan installation is detected by default while GLFW include directories and library location has to be specified via `GLFW_DIR` and `GLFW_LIB`, respectively. 
+The project uses the CMake build system, Vulkan installation is detected by default while GLFW include directories and library location has to be specified via `GLFW_INCLUDE_DIR` and `GLFW_LIB`, respectively. 
 Also, [Ninja](https://ninja-build.org/) is recommended for better build performance.
 
 ```bash
