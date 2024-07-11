@@ -52,6 +52,8 @@ protected:
 	Model<Vertex> MWallS;
 	Model<Vertex> MWallW;
 	Model<Vertex> MWindow;
+	Model<Vertex> MFloor;
+	Model<Vertex> MBed;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -60,6 +62,8 @@ protected:
 	DescriptorSet DSWallS;
 	DescriptorSet DSWallW;
 	DescriptorSet DSWindow;
+	DescriptorSet DSFloor;
+	DescriptorSet DSBed;
 
 	// Textures
 	Texture TFurniture;
@@ -71,6 +75,8 @@ protected:
 	UniformBufferObject WallSUbo;
 	UniformBufferObject WallWUbo;
 	UniformBufferObject WindowUbo;
+	UniformBufferObject FloorUbo;
+	UniformBufferObject BedUbo;
 
 	// Other application parameters
 
@@ -84,9 +90,9 @@ protected:
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 6;
-		texturesInPool = 6;
-		setsInPool = 6;
+		uniformBlocksInPool = 8;
+		texturesInPool = 8;
+		setsInPool = 8;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -129,6 +135,8 @@ protected:
 		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallW.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWindow.init(this, &VD, "models/window.mgcg", MGCG);
+		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
+		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -173,6 +181,14 @@ protected:
 		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		               {1, TEXTURE, 0, &TFurniture},
 		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSFloor.init(this, &DSL,
+		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		              {1, TEXTURE, 0, &TFurniture},
+		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSBed.init(this, &DSL,
+		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		            {1, TEXTURE, 0, &TFurniture},
+		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -188,6 +204,8 @@ protected:
 		DSWallS.cleanup();
 		DSWallW.cleanup();
 		DSWindow.cleanup();
+		DSFloor.cleanup();
+		DSBed.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -205,6 +223,8 @@ protected:
 		MWallS.cleanup();
 		MWallW.cleanup();
 		MWindow.cleanup();
+		MFloor.cleanup();
+		MBed.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -251,6 +271,16 @@ protected:
 		MWindow.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 		                 static_cast<uint32_t>(MWindow.indices.size()), 1, 0, 0, 0);
+
+		DSFloor.bind(commandBuffer, PBlinn, 0, currentImage);
+		MFloor.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
+
+		DSBed.bind(commandBuffer, PBlinn, 0, currentImage);
+		MBed.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 10.0f);
@@ -348,6 +378,20 @@ protected:
 		WindowUbo.mvpMat = ViewPrj * World;
 		DSWindow.map(currentImage, &WindowUbo, sizeof(WindowUbo), 0);
 		DSWindow.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// floor
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 4.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 2.0f));
+		FloorUbo.mvpMat = ViewPrj * World;
+		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
+		DSFloor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// bed
+		World = glm::translate(glm::mat4(1), glm::vec3(-2.0f, 0.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		BedUbo.mvpMat = ViewPrj * World;
+		DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
+		DSBed.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketPosition.z -= MOVE_SPEED * deltaT;
