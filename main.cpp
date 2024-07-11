@@ -111,8 +111,7 @@ protected:
 		          {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
 
 		// init vertex descriptors
-		VD.init(this,
-		        {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
+		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 		        {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
 		          sizeof(glm::vec3), POSITION},
 		         {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
@@ -298,9 +297,9 @@ protected:
 		// update global uniforms
 		GlobalUniformBufferObject gubo{};
 		gubo.lightDir =
-			glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
-					  sin(glm::radians(135.0f)),
-					  cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
+		    glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
+		              sin(glm::radians(135.0f)),
+		              cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
 		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		gubo.eyePos = CamPos;
 
@@ -333,6 +332,7 @@ protected:
 		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		float deltaT = 0.016f;
+
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketPosition.z -= MOVE_SPEED * deltaT;
