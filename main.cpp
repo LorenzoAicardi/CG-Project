@@ -70,6 +70,7 @@ protected:
 	UniformBufferObject WallEUbo;
 	UniformBufferObject WallSUbo;
 	UniformBufferObject WallWUbo;
+	UniformBufferObject WindowUbo;
 
 	// Other application parameters
 
@@ -83,9 +84,9 @@ protected:
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 5;
-		texturesInPool = 5;
-		setsInPool = 5;
+		uniformBlocksInPool = 6;
+		texturesInPool = 6;
+		setsInPool = 6;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -127,6 +128,7 @@ protected:
 		MWallE.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallW.init(this, &VD, "models/gray_wall.mgcg", MGCG);
+		MWindow.init(this, &VD, "models/window.mgcg", MGCG);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -167,6 +169,10 @@ protected:
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSWindow.init(this, &DSL,
+		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		               {1, TEXTURE, 0, &TFurniture},
+		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -181,6 +187,7 @@ protected:
 		DSWallE.cleanup();
 		DSWallS.cleanup();
 		DSWallW.cleanup();
+		DSWindow.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -197,6 +204,7 @@ protected:
 		MWallE.cleanup();
 		MWallS.cleanup();
 		MWallW.cleanup();
+		MWindow.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -238,6 +246,11 @@ protected:
 		MWallW.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 		                 static_cast<uint32_t>(MWallW.indices.size()), 1, 0, 0, 0);
+
+		DSWindow.bind(commandBuffer, PBlinn, 0, currentImage);
+		MWindow.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MWindow.indices.size()), 1, 0, 0, 0);
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 10.0f);
@@ -266,9 +279,12 @@ protected:
 		const glm::vec3 CamTargetDelta = glm::vec3(0, 2, 0);
 		const glm::vec3 Cam1stPos = glm::vec3(0, 0, 10);
 
+		float deltaT = 0.016f;
 		static float cTime = 0.0;
 		const float turnTime = 36.0f;
 		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
+		cTime = cTime + deltaT;
+		cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
 
 		static glm::vec3 dampedCamPos = CamPos;
 
@@ -293,12 +309,14 @@ protected:
 		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		gubo.eyePos = CamPos;
 
+		// north wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
 		DSWallN.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
+		// east wall
 		World = glm::translate(glm::mat4(1), glm::vec3(4.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 		                     glm::vec3(0.0f, 1.0f, 0.0f));
@@ -307,12 +325,14 @@ protected:
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
 		DSWallE.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
+		// south wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 8.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
 		DSWallS.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
+		// west wall
 		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 		                     glm::vec3(0.0f, 1.0f, 0.0f));
@@ -321,8 +341,13 @@ protected:
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
 		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
-		float deltaT = 0.016f;
-
+		// window
+		World = glm::translate(glm::mat4(1), glm::vec3(3.8f, 2.0f, 2.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		WindowUbo.mvpMat = ViewPrj * World;
+		DSWindow.map(currentImage, &WindowUbo, sizeof(WindowUbo), 0);
+		DSWindow.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketPosition.z -= MOVE_SPEED * deltaT;
@@ -343,16 +368,16 @@ protected:
 			rocketPosition.y -= MOVE_SPEED * deltaT;
 		}
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			rotation.x -= ROT_SPEED * deltaT;
-		}
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 			rotation.x += ROT_SPEED * deltaT;
 		}
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			rotation.x -= ROT_SPEED * deltaT;
+		}
 		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			rotation.y -= ROT_SPEED * deltaT;
+			rotation.y += ROT_SPEED * deltaT;
 		}
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			rotation.y += ROT_SPEED * deltaT;
+			rotation.y -= ROT_SPEED * deltaT;
 		}
 
 		if(rotation.y > 89.0f) rotation.y = 89.0f;
