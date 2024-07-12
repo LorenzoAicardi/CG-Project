@@ -58,6 +58,11 @@ protected:
 	Model<Vertex> MCloset;
 	Model<Vertex> MDesk;
 	Model<Vertex> MGamingDesk;
+	Model<Vertex> MRedColumn;
+	Model<Vertex> MWhiteColumn;
+	Model<Vertex> MCoinSack;
+	Model<Vertex> MCoinStack;
+	Model<Vertex> MDoor;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -72,6 +77,11 @@ protected:
 	DescriptorSet DSCloset;
 	DescriptorSet DSDesk;
 	DescriptorSet DSGamingDesk;
+	DescriptorSet DSDoor;
+	DescriptorSet DSRedColumn;
+	DescriptorSet DSWhiteColumn;
+	DescriptorSet DSCoinSack;
+	DescriptorSet DSCoinStack;
 
 	// Textures
 	Texture TFurniture;
@@ -89,7 +99,11 @@ protected:
 	UniformBufferObject ClosetUbo;
 	UniformBufferObject DeskUbo;
 	UniformBufferObject GamingDeskUbo;
-
+	UniformBufferObject RedColumnUbo;
+	UniformBufferObject WhiteColumnUbo;
+	UniformBufferObject CoinSackUbo;
+	UniformBufferObject CoinStackUbo;
+	UniformBufferObject DoorUbo;
 	// Other application parameters
 
 	// Here you set the main application parameters
@@ -102,9 +116,9 @@ protected:
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 20;
-		texturesInPool = 20;
-		setsInPool = 20;
+		uniformBlocksInPool = 50;
+		texturesInPool = 50;
+		setsInPool = 50;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -150,10 +164,14 @@ protected:
 		MWindow2.init(this, &VD, "models/window.mgcg", MGCG);
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
 		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
-		MCloset.init(this, &VD, "models/closet.mgcg", MGCG);
-		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
 		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
-
+		MCloset.init(this, &VD, "models/closet.mgcg", MGCG);
+		MDoor.init(this, &VD, "models/door.mgcg", MGCG);
+		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
+		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG);
+		MWhiteColumn.init(this, &VD, "models/white_column.mgcg", MGCG);
+		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG);
+		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
@@ -209,7 +227,15 @@ protected:
 		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		            {1, TEXTURE, 0, &TFurniture},
 		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSGamingDesk.init(this, &DSL,
+		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		            {1, TEXTURE, 0, &TFurniture},
+		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSCloset.init(this, &DSL,
+		                  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                   {1, TEXTURE, 0, &TFurniture},
+		                   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSDoor.init(this, &DSL,
 		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		               {1, TEXTURE, 0, &TFurniture},
 		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
@@ -217,10 +243,23 @@ protected:
 		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		             {1, TEXTURE, 0, &TFurniture},
 		             {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSGamingDesk.init(this, &DSL,
-		                  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                   {1, TEXTURE, 0, &TFurniture},
-		                   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSRedColumn.init(this, &DSL,
+		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                  {1, TEXTURE, 0, &TFurniture},
+		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSWhiteColumn.init(this, &DSL,
+		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                  {1, TEXTURE, 0, &TFurniture},
+		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSCoinSack.init(this, &DSL,
+		                   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                    {1, TEXTURE, 0, &TFurniture},
+		                    {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSCoinStack.init(this, &DSL,
+		                {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                 {1, TEXTURE, 0, &TFurniture},
+		                 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -239,9 +278,14 @@ protected:
 		DSWindow2.cleanup();
 		DSFloor.cleanup();
 		DSBed.cleanup();
-		DSCloset.cleanup();
-		DSDesk.cleanup();
 		DSGamingDesk.cleanup();
+		DSCloset.cleanup();
+		DSDoor.cleanup();
+		DSDesk.cleanup();
+		DSRedColumn.cleanup();
+		DSWhiteColumn.cleanup();
+		DSCoinSack.cleanup();
+		DSCoinStack.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -262,9 +306,14 @@ protected:
 		MWindow2.cleanup();
 		MFloor.cleanup();
 		MBed.cleanup();
-		MCloset.cleanup();
-		MDesk.cleanup();
 		MGamingDesk.cleanup();
+		MCloset.cleanup();
+		MDoor.cleanup();
+		MDesk.cleanup();
+		MRedColumn.cleanup();
+		MWhiteColumn.cleanup();
+		MCoinSack.cleanup();
+		MCoinStack.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -326,22 +375,39 @@ protected:
 		MBed.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 		                 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
+		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
+		MGamingDesk.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MGamingDesk.indices.size()), 1, 0, 0, 0);
 
 		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCloset.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
+
+		DSDoor.bind(commandBuffer, PBlinn, 0, currentImage);
+		MDoor.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
 
 		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDesk.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
 
-		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
-		MGamingDesk.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
-		                 0, 0, 0);
+		DSRedColumn.bind(commandBuffer, PBlinn, 0, currentImage);
+		MRedColumn.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0, 0, 0);
+
+		DSWhiteColumn.bind(commandBuffer, PBlinn, 0, currentImage);
+		MWhiteColumn.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MWhiteColumn.indices.size()), 1, 0, 0, 0);
+
+		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
+		MCoinSack.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
+
+		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
+		MCoinStack.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0, 0, 0);
+
+
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 5.0f);
@@ -485,6 +551,40 @@ protected:
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
 		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// door
+		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		DoorUbo.mvpMat = ViewPrj * World;
+		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo),0);
+		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// red column
+		World = glm::translate(glm::mat4(1), glm::vec3(-3.5f, 2.0f, 7.5f));
+		RedColumnUbo.mvpMat = ViewPrj * World;
+		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo),0);
+		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// white column
+		World = glm::translate(glm::mat4(1), glm::vec3(-3.9f, 2.0f, 3.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),glm::vec3(0.0f, 1.0f, 0.0f));
+		WhiteColumnUbo.mvpMat = ViewPrj * World;
+		DSWhiteColumn.map(currentImage, &WhiteColumnUbo, sizeof(WhiteColumnUbo),0);
+		DSWhiteColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// coin sack
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+		CoinSackUbo.mvpMat = ViewPrj * World;
+		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo),0);
+		DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// coin stack
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
+		CoinStackUbo.mvpMat = ViewPrj * World;
+		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo),0);
+		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketPosition.z -= MOVE_SPEED * deltaT;
