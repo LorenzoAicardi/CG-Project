@@ -154,7 +154,7 @@ protected:
 		// The second parameter is the pointer to the vertex definition for this model
 		// The third parameter is the file name
 		// The last is a constant specifying the file type: currently only OBJ or GLTF
-		MRocket.init(this, &VD, "models/rocket_colored.obj", OBJ);
+		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ);
 		MWallN.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallE.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
@@ -287,6 +287,8 @@ protected:
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
     glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+
     const float ROT_SPEED = 50.0f;
     const float MOVE_SPEED = 5.0f;
     glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
@@ -333,7 +335,6 @@ protected:
 
         // Rocket
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
-        World *= glm::rotate(glm::mat4(1.0f),glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
         World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
@@ -371,45 +372,50 @@ protected:
 		float deltaT = 0.016f;
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			rocketDirection.z -= 1.0f; //MOVE_SPEED * deltaT
+			rocketRotation.x -= 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			rocketDirection.z += 1.0f;
+			rocketRotation.x += 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			rocketDirection.x -= 1.0f;
+			rocketRotation.y += 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			rocketDirection.x += 1.0f;
+			rocketRotation.y -= 1.0f;
 		}
-		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			rocketDirection.y += 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-			rocketDirection.y -= 1.0f;
+		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { // Space only moves me forward
+			rocketDirection.z -= 1.0f;
+            float rocketSpeed = 0.0f;
+
+            glm::mat4 rocketRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+            rocketRotationMatrix = glm::rotate(rocketRotationMatrix, glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+
+            glm::vec3 newRocketDirection = glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
+
+            rocketSpeed += MOVE_SPEED * deltaT;
+            rocketPosition += newRocketDirection * MOVE_SPEED * deltaT;
+
+            rocketDirection = {0,0,0};
 		}
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            rocketRotation.x -= 1.0f; //ROT_SPEED * deltaT
+            rocketCameraRotation.x -= 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            rocketRotation.x += 1.0f;
+            rocketCameraRotation.x += 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            rocketRotation.y -= 1.0f;
+            rocketCameraRotation.y -= 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            rocketRotation.y += 1.0f;
+            rocketCameraRotation.y += 1.0f;
 		}
 
-        if (rocketRotation.y > 89.0f)
-            rocketRotation.y = 89.0f;
-        if (rocketRotation.y < -89.0f)
-            rocketRotation.y = -89.0f;
+        if (rocketCameraRotation.y > 89.0f)
+            rocketCameraRotation.y = 89.0f;
+        if (rocketCameraRotation.y < -89.0f)
+            rocketCameraRotation.y = -89.0f;
 
         // Updating object position relative to its axis
-        glm::mat4 rocketRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::vec3 newRocketDirection = glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
-        rocketPosition += newRocketDirection * MOVE_SPEED * deltaT;
         // Gravity
         if(!glfwGetKey(window, GLFW_KEY_SPACE)) {
             verticalSpeed += 9.18 * deltaT;
@@ -421,24 +427,16 @@ protected:
         }
 
 
-
-        // TODO: Upward propulsion done right
         // Update rocket world matrix
         World = glm::translate(glm::mat4(1.0f), rocketPosition);
-        World *= glm::rotate(glm::mat4(1.0f),glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f));
-        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+        World *= glm::rotate(glm::mat4(1.0f),glm::radians(rocketRotation.y), glm::vec3(0.0f,1.0f,0.0f));
+        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
         World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 
-        /*
-        World = glm::rotate(
-                glm::translate(glm::mat4(1.0f), rocketPosition), glm::radians(rocketRotation.x), glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-        */
-
         float radius = 3.0f;
-        float camx = sin(glm::radians(rocketRotation.x)) * radius;
-        float camz = cos(glm::radians(rocketRotation.x)) * radius;
-        float camy = sin (glm::radians(rocketRotation.y)) * radius; // + 3?
+        float camx = sin(glm::radians(rocketRotation.y)) * radius;
+        float camz = cos(glm::radians(rocketRotation.y)) * radius;
+        float camy = - sin (glm::radians(rocketRotation.x)) * radius; // + 3?
         View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
                            rocketPosition,
                            glm::vec3(0,1,0));
