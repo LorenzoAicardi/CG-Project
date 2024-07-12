@@ -154,7 +154,7 @@ protected:
 		// The second parameter is the pointer to the vertex definition for this model
 		// The third parameter is the file name
 		// The last is a constant specifying the file type: currently only OBJ or GLTF
-		MRocket.init(this, &VD, "models/desk_lamp.mgcg", MGCG);
+		MRocket.init(this, &VD, "models/rocket_colored.obj", OBJ);
 		MWallN.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallE.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
@@ -162,7 +162,7 @@ protected:
 
 		// Create the textures
 		// The second parameter is the file name
-		TFurniture1.init(this, "textures/Textures_Forniture.png");
+		//TFurniture1.init(this, "textures/Textures_Forniture.png");
 		TFurniture2.init(this, "textures/Textures_Forniture.png");
 		TFurniture3.init(this, "textures/Textures_Forniture.png");
 		TFurniture4.init(this, "textures/Textures_Forniture.png");
@@ -186,7 +186,7 @@ protected:
 		                  // third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
 		                  // fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 		                  {0, UNIFORM, sizeof(UniformBlock), nullptr},
-		                  {1, TEXTURE, 0, &TFurniture1},
+		                  //{1, TEXTURE, 0, &TFurniture1},
 		              });
 		DSWallN.init(this, &DSL,
 		             {
@@ -226,7 +226,7 @@ protected:
 	// methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() override {
 		// Cleanup textures
-		TFurniture1.cleanup();
+		//TFurniture1.cleanup();
 		TFurniture2.cleanup();
 		TFurniture3.cleanup();
 		TFurniture4.cleanup();
@@ -288,7 +288,7 @@ protected:
 
     glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
     const float ROT_SPEED = 50.0f;
-    const float MOVE_SPEED = 1.0f;
+    const float MOVE_SPEED = 5.0f;
     glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
     glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
     glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
@@ -331,8 +331,10 @@ protected:
 
 		glm::mat4 World;
 
-        // Walls
-		World = glm::translate(glm::mat4(1), rocketPosition);
+        // Rocket
+		World = glm::translate(glm::mat4(1.0f), rocketPosition);
+        World *= glm::rotate(glm::mat4(1.0f),glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
@@ -340,6 +342,7 @@ protected:
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
+        // Walls
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
 		WallNUbo.mvpMat = Prj * View * World;
@@ -411,15 +414,26 @@ protected:
         if(!glfwGetKey(window, GLFW_KEY_SPACE)) {
             verticalSpeed += 9.18 * deltaT;
             rocketPosition.y -= verticalSpeed * deltaT;
+            if(rocketPosition.y < 0.0f)
+                rocketPosition.y = 0.0f;
         } else {
             verticalSpeed = 0.0f;
         }
 
+
+
         // TODO: Upward propulsion done right
         // Update rocket world matrix
+        World = glm::translate(glm::mat4(1.0f), rocketPosition);
+        World *= glm::rotate(glm::mat4(1.0f),glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+        World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+
+        /*
         World = glm::rotate(
                 glm::translate(glm::mat4(1.0f), rocketPosition), glm::radians(rocketRotation.x), glm::vec3(0.0f, 1.0f, 0.0f)
         );
+        */
 
         float radius = 3.0f;
         float camx = sin(glm::radians(rocketRotation.x)) * radius;
