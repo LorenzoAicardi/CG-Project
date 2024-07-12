@@ -63,6 +63,7 @@ protected:
 	Model<Vertex> MCoinSack;
 	Model<Vertex> MCoinStack;
 	Model<Vertex> MDoor;
+	Model<Vertex> MGamingPouf;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -82,6 +83,7 @@ protected:
 	DescriptorSet DSClock;
 	DescriptorSet DSCoinSack;
 	DescriptorSet DSCoinStack;
+	DescriptorSet DSGamingPouf;
 
 	// Textures
 	Texture TFurniture;
@@ -106,7 +108,7 @@ protected:
 	UniformBufferObject CoinSackUbo;
 	UniformBufferObject CoinStackUbo;
 	UniformBufferObject DoorUbo;
-	// Other application parameters
+	UniformBufferObject GamingPoufUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -133,28 +135,28 @@ protected:
 	void localInit() override {
 		// init descriptor layouts [what will be passed to the shaders]
 		DSL.init(this,
-		         {// this array contains the bindings:
-		          // first  element : the binding number
-		          // second element : the type of element (buffer or texture)
-		          // using the corresponding Vulkan constant
-		          // third  element : the pipeline stage where it will be used
-		          // using the corresponding Vulkan constant
-		          {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-		          {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-		          {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
+				 {// this array contains the bindings:
+				  // first  element : the binding number
+				  // second element : the type of element (buffer or texture)
+				  // using the corresponding Vulkan constant
+				  // third  element : the pipeline stage where it will be used
+				  // using the corresponding Vulkan constant
+				  {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+				  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
 
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
-		        {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
-		          sizeof(glm::vec3), POSITION},
-		         {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
-		          sizeof(glm::vec3), NORMAL},
-		         {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
-		          sizeof(glm::vec2), UV}});
+				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
+				  sizeof(glm::vec3), POSITION},
+				 {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
+				  sizeof(glm::vec3), NORMAL},
+				 {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
+				  sizeof(glm::vec2), UV}});
 
 		// init pipelines
 		PBlinn.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-		            "shaders/LambertBlinnShaderFrag.spv", {&DSL});
+					"shaders/LambertBlinnShaderFrag.spv", {&DSL});
 
 		// init models
 		MRocket.init(this, &VD, "models/desk_lamp.mgcg", MGCG);
@@ -174,6 +176,8 @@ protected:
 		MClock.init(this, &VD, "models/clock.mgcg", MGCG);
 		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG);
 		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
+		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG);
+
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
@@ -190,79 +194,83 @@ protected:
 
 		// Here you define the data set
 		DSRocket.init(this, &DSL,
-		              {// the second parameter, is a pointer to the Uniform Set Layout of this set
-		               // the last parameter is an array, with one element per binding of the set.
-		               // first  elmenet : the binding number
-		               // second element : UNIFORM or TEXTURE (an enum) depending on the type
-		               // third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
-		               // fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
-		               {0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		               {1, TEXTURE, 0, &TFurniture},
-		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					  {// the second parameter, is a pointer to the Uniform Set Layout of this set
+					   // the last parameter is an array, with one element per binding of the set.
+					   // first  elmenet : the binding number
+					   // second element : UNIFORM or TEXTURE (an enum) depending on the type
+					   // third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
+					   // fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
+					   {0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					   {1, TEXTURE, 0, &TFurniture},
+					   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallN.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallE.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallS.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallW.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWindow1.init(this, &DSL,
-		               {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                {1, TEXTURE, 0, &TFurniture},
-		                {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &TFurniture},
+						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWindow2.init(this, &DSL,
-		               {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                {1, TEXTURE, 0, &TFurniture},
-		                {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &TFurniture},
+						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSFloor.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSBed.init(this, &DSL,
-		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		            {1, TEXTURE, 0, &TFurniture},
-		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+				   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &TFurniture},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSGamingDesk.init(this, &DSL,
-		                  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                   {1, TEXTURE, 0, &TFurniture},
-		                   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						   {1, TEXTURE, 0, &TFurniture},
+						   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSCloset.init(this, &DSL,
-		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		               {1, TEXTURE, 0, &TFurniture},
-		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					   {1, TEXTURE, 0, &TFurniture},
+					   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSDoor.init(this, &DSL,
-		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		             {1, TEXTURE, 0, &TFurniture},
-		             {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					 {1, TEXTURE, 0, &TFurniture},
+					 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSDesk.init(this, &DSL,
-		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		             {1, TEXTURE, 0, &TFurniture},
-		             {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					 {1, TEXTURE, 0, &TFurniture},
+					 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSRedColumn.init(this, &DSL,
-		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                  {1, TEXTURE, 0, &TFurniture},
-		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						  {1, TEXTURE, 0, &TFurniture},
+						  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSClock.init(this, &DSL,
-		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		              {1, TEXTURE, 0, &TFurniture},
-		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					  {1, TEXTURE, 0, &TFurniture},
+					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSCoinSack.init(this, &DSL,
-		                {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                 {1, TEXTURE, 0, &TSack},
-		                 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						 {1, TEXTURE, 0, &TSack},
+						 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSCoinStack.init(this, &DSL,
-		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                  {1, TEXTURE, 0, &TStack},
-		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						  {1, TEXTURE, 0, &TStack},
+						  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSGamingPouf.init(this, &DSL,
+						  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						   {1, TEXTURE, 0, &TFurniture},
+						   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -289,6 +297,7 @@ protected:
 		DSClock.cleanup();
 		DSCoinSack.cleanup();
 		DSCoinStack.cleanup();
+		DSGamingPouf.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -319,6 +328,7 @@ protected:
 		MClock.cleanup();
 		MCoinSack.cleanup();
 		MCoinStack.cleanup();
+		MGamingPouf.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -339,89 +349,96 @@ protected:
 		DSRocket.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRocket.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 
 		DSWallN.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallN.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWallN.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWallN.indices.size()), 1, 0, 0, 0);
 
 		DSWallE.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallE.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWallE.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWallE.indices.size()), 1, 0, 0, 0);
 
 		DSWallS.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallS.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWallS.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWallS.indices.size()), 1, 0, 0, 0);
 
 		DSWallW.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallW.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWallW.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWallW.indices.size()), 1, 0, 0, 0);
 
 		DSWindow1.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWindow1.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWindow1.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWindow1.indices.size()), 1, 0, 0, 0);
 
 		DSWindow2.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWindow2.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWindow2.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MWindow2.indices.size()), 1, 0, 0, 0);
 
 		DSFloor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MFloor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
 
 		DSBed.bind(commandBuffer, PBlinn, 0, currentImage);
 		MBed.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
+
 		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MGamingDesk.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
-		                 0, 0, 0);
+						 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
+						 0, 0, 0);
 
 		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCloset.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
 
 		DSDoor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDoor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
 
 		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDesk.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
 
 		DSRedColumn.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRedColumn.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0,
-		                 0, 0);
+						 static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0,
+						 0, 0);
 
 		DSClock.bind(commandBuffer, PBlinn, 0, currentImage);
 		MClock.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
 		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinSack.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
 
 		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinStack.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0,
-		                 0, 0);
+						 static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0,
+						 0, 0);
+
+		DSGamingPouf.bind(commandBuffer, PBlinn, 0, currentImage);
+		MGamingPouf.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MGamingPouf.indices.size()), 1,
+						 0, 0, 0);
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 5.0f);
@@ -474,9 +491,9 @@ protected:
 		// update global uniforms
 		GlobalUniformBufferObject gubo{};
 		gubo.lightDir =
-		    glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
-		              sin(glm::radians(135.0f)),
-		              cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
+			glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
+					  sin(glm::radians(135.0f)),
+					  cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
 		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		gubo.eyePos = CamPos;
 
@@ -490,7 +507,7 @@ protected:
 		// east wall
 		World = glm::translate(glm::mat4(1), glm::vec3(6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
@@ -506,7 +523,7 @@ protected:
 		// west wall
 		World = glm::translate(glm::mat4(1), glm::vec3(-6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
@@ -515,14 +532,14 @@ protected:
 		// windows
 		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 2.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window1Ubo.mvpMat = ViewPrj * World;
 		DSWindow1.map(currentImage, &Window1Ubo, sizeof(Window1Ubo), 0);
 		DSWindow1.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 6.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window2Ubo.mvpMat = ViewPrj * World;
 		DSWindow2.map(currentImage, &Window2Ubo, sizeof(Window2Ubo), 0);
 		DSWindow2.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -543,7 +560,7 @@ protected:
 		// closet
 		World = glm::translate(glm::mat4(1), glm::vec3(-5.75f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClosetUbo.mvpMat = ViewPrj * World;
 		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
 		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -551,7 +568,7 @@ protected:
 		// desk
 		World = glm::translate(glm::mat4(1), glm::vec3(5.5f, 0.0f, 2.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 2.0f, 2.0f));
 		DeskUbo.mvpMat = ViewPrj * World;
 		DSDesk.map(currentImage, &DeskUbo, sizeof(DeskUbo), 0);
@@ -563,6 +580,15 @@ protected:
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
 		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// gaming pouf
+		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 1.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(-180.0f),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		GamingPoufUbo.mvpMat = ViewPrj * World;
+		DSGamingPouf.map(currentImage, &GamingPoufUbo, sizeof(GamingPoufUbo), 0);
+		DSGamingPouf.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// door
 		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f));
@@ -580,7 +606,7 @@ protected:
 		// white column
 		World = glm::translate(glm::mat4(1), glm::vec3(-5.9f, 2.0f, 3.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+							 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
 		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
 		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -642,7 +668,7 @@ protected:
 		float camy = sin(glm::radians(rotation.y)) * radius;  // +3?
 
 		View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
-		                   rocketPosition, glm::vec3(0, 1, 0));
+						   rocketPosition, glm::vec3(0, 1, 0));
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 
