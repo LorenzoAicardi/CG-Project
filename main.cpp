@@ -295,6 +295,7 @@ protected:
     glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
     glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
     float verticalSpeed = 0.0f;
+    float rocketSpeed = 0.0f;
     // Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -385,7 +386,6 @@ protected:
 		}
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { // Space only moves me forward
 			rocketDirection.z -= 1.0f;
-            float rocketSpeed = 0.0f;
 
             glm::mat4 rocketRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
             rocketRotationMatrix = glm::rotate(rocketRotationMatrix, glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -393,38 +393,47 @@ protected:
             glm::vec3 newRocketDirection = glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
             rocketSpeed += MOVE_SPEED * deltaT;
-            rocketPosition += newRocketDirection * MOVE_SPEED * deltaT;
+            // Cap maximum speed
+            if(rocketSpeed > 5.0f)
+                rocketSpeed = 5.0f;
+            // Acceleration towards maximum speed
+            rocketPosition += newRocketDirection * rocketSpeed * deltaT; // MOVE_SPEED * deltaT
 
+            // Reset direction to avoid permanently going in the same direction
             rocketDirection = {0,0,0};
-		}
+            // "Cancel" gravity while accelerating
+            verticalSpeed = 0.0f;
+        } else {
+            // Gravity
+            verticalSpeed += 9.18 * deltaT;
+            rocketPosition.y -= verticalSpeed * deltaT;
+            // Ground
+            if(rocketPosition.y < 0.0f)
+                rocketPosition.y = 0.0f;
+            rocketSpeed = 0.0f;
+        }
+
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            rocketCameraRotation.x -= 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            rocketCameraRotation.x += 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
             rocketCameraRotation.y -= 1.0f;
 		}
-		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             rocketCameraRotation.y += 1.0f;
+		}
+		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            rocketCameraRotation.x -= 1.0f;
+		}
+		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            rocketCameraRotation.x += 1.0f;
 		}
 
         if (rocketCameraRotation.y > 89.0f)
             rocketCameraRotation.y = 89.0f;
         if (rocketCameraRotation.y < -89.0f)
             rocketCameraRotation.y = -89.0f;
-
-        // Updating object position relative to its axis
-        // Gravity
-        if(!glfwGetKey(window, GLFW_KEY_SPACE)) {
-            verticalSpeed += 9.18 * deltaT;
-            rocketPosition.y -= verticalSpeed * deltaT;
-            if(rocketPosition.y < 0.0f)
-                rocketPosition.y = 0.0f;
-        } else {
-            verticalSpeed = 0.0f;
-        }
+        if (rocketCameraRotation.x < -89.0f)
+            rocketCameraRotation.x = -89.0f;
+        if (rocketCameraRotation.x > 89.0f)
+            rocketCameraRotation.x = 89.0f;
 
 
         // Update rocket world matrix
@@ -434,9 +443,9 @@ protected:
         World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 
         float radius = 3.0f;
-        float camx = sin(glm::radians(rocketRotation.y)) * radius;
-        float camz = cos(glm::radians(rocketRotation.y)) * radius;
-        float camy = - sin (glm::radians(rocketRotation.x)) * radius; // + 3?
+        float camx = sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+        float camz = cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+        float camy = - sin (glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius; // + 3?
         View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
                            rocketPosition,
                            glm::vec3(0,1,0));
