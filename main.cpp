@@ -51,9 +51,13 @@ protected:
 	Model<Vertex> MWallE;
 	Model<Vertex> MWallS;
 	Model<Vertex> MWallW;
-	Model<Vertex> MWindow;
+	Model<Vertex> MWindow1;
+	Model<Vertex> MWindow2;
 	Model<Vertex> MFloor;
 	Model<Vertex> MBed;
+	Model<Vertex> MCloset;
+	Model<Vertex> MDesk;
+	Model<Vertex> MGamingDesk;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -61,9 +65,13 @@ protected:
 	DescriptorSet DSWallE;
 	DescriptorSet DSWallS;
 	DescriptorSet DSWallW;
-	DescriptorSet DSWindow;
+	DescriptorSet DSWindow1;
+	DescriptorSet DSWindow2;
 	DescriptorSet DSFloor;
 	DescriptorSet DSBed;
+	DescriptorSet DSCloset;
+	DescriptorSet DSDesk;
+	DescriptorSet DSGamingDesk;
 
 	// Textures
 	Texture TFurniture;
@@ -74,9 +82,13 @@ protected:
 	UniformBufferObject WallEUbo;
 	UniformBufferObject WallSUbo;
 	UniformBufferObject WallWUbo;
-	UniformBufferObject WindowUbo;
+	UniformBufferObject Window1Ubo;
+	UniformBufferObject Window2Ubo;
 	UniformBufferObject FloorUbo;
 	UniformBufferObject BedUbo;
+	UniformBufferObject ClosetUbo;
+	UniformBufferObject DeskUbo;
+	UniformBufferObject GamingDeskUbo;
 
 	// Other application parameters
 
@@ -90,9 +102,9 @@ protected:
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 8;
-		texturesInPool = 8;
-		setsInPool = 8;
+		uniformBlocksInPool = 20;
+		texturesInPool = 20;
+		setsInPool = 20;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -134,9 +146,13 @@ protected:
 		MWallE.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
 		MWallW.init(this, &VD, "models/gray_wall.mgcg", MGCG);
-		MWindow.init(this, &VD, "models/window.mgcg", MGCG);
+		MWindow1.init(this, &VD, "models/window.mgcg", MGCG);
+		MWindow2.init(this, &VD, "models/window.mgcg", MGCG);
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
 		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
+		MCloset.init(this, &VD, "models/closet.mgcg", MGCG);
+		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
+		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -177,10 +193,14 @@ protected:
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		              {1, TEXTURE, 0, &TFurniture},
 		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSWindow.init(this, &DSL,
-		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		               {1, TEXTURE, 0, &TFurniture},
-		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSWindow1.init(this, &DSL,
+		               {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                {1, TEXTURE, 0, &TFurniture},
+		                {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSWindow2.init(this, &DSL,
+		               {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                {1, TEXTURE, 0, &TFurniture},
+		                {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSFloor.init(this, &DSL,
 		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		              {1, TEXTURE, 0, &TFurniture},
@@ -189,6 +209,18 @@ protected:
 		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		            {1, TEXTURE, 0, &TFurniture},
 		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSCloset.init(this, &DSL,
+		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		               {1, TEXTURE, 0, &TFurniture},
+		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSDesk.init(this, &DSL,
+		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		             {1, TEXTURE, 0, &TFurniture},
+		             {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSGamingDesk.init(this, &DSL,
+		                  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                   {1, TEXTURE, 0, &TFurniture},
+		                   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -203,9 +235,13 @@ protected:
 		DSWallE.cleanup();
 		DSWallS.cleanup();
 		DSWallW.cleanup();
-		DSWindow.cleanup();
+		DSWindow1.cleanup();
+		DSWindow2.cleanup();
 		DSFloor.cleanup();
 		DSBed.cleanup();
+		DSCloset.cleanup();
+		DSDesk.cleanup();
+		DSGamingDesk.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -222,9 +258,13 @@ protected:
 		MWallE.cleanup();
 		MWallS.cleanup();
 		MWallW.cleanup();
-		MWindow.cleanup();
+		MWindow1.cleanup();
+		MWindow2.cleanup();
 		MFloor.cleanup();
 		MBed.cleanup();
+		MCloset.cleanup();
+		MDesk.cleanup();
+		MGamingDesk.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -267,10 +307,15 @@ protected:
 		vkCmdDrawIndexed(commandBuffer,
 		                 static_cast<uint32_t>(MWallW.indices.size()), 1, 0, 0, 0);
 
-		DSWindow.bind(commandBuffer, PBlinn, 0, currentImage);
-		MWindow.bind(commandBuffer);
+		DSWindow1.bind(commandBuffer, PBlinn, 0, currentImage);
+		MWindow1.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
-		                 static_cast<uint32_t>(MWindow.indices.size()), 1, 0, 0, 0);
+		                 static_cast<uint32_t>(MWindow1.indices.size()), 1, 0, 0, 0);
+
+		DSWindow2.bind(commandBuffer, PBlinn, 0, currentImage);
+		MWindow2.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MWindow2.indices.size()), 1, 0, 0, 0);
 
 		DSFloor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MFloor.bind(commandBuffer);
@@ -281,9 +326,25 @@ protected:
 		MBed.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 		                 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
+
+		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
+		MCloset.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
+
+		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
+		MDesk.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
+
+		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
+		MGamingDesk.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
+		                 0, 0, 0);
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 10.0f);
+	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
@@ -341,13 +402,13 @@ protected:
 
 		// north wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
 		DSWallN.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// east wall
-		World = glm::translate(glm::mat4(1), glm::vec3(4.0f, 0.0f, 4.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 		                     glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
@@ -357,13 +418,13 @@ protected:
 
 		// south wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 8.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
 		DSWallS.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// west wall
-		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 4.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(-6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 		                     glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
@@ -371,27 +432,59 @@ protected:
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
 		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
-		// window
-		World = glm::translate(glm::mat4(1), glm::vec3(3.8f, 2.0f, 2.0f));
+		// windows
+		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 2.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 		                     glm::vec3(0.0f, 1.0f, 0.0f));
-		WindowUbo.mvpMat = ViewPrj * World;
-		DSWindow.map(currentImage, &WindowUbo, sizeof(WindowUbo), 0);
-		DSWindow.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		Window1Ubo.mvpMat = ViewPrj * World;
+		DSWindow1.map(currentImage, &Window1Ubo, sizeof(Window1Ubo), 0);
+		DSWindow1.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 6.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		Window2Ubo.mvpMat = ViewPrj * World;
+		DSWindow2.map(currentImage, &Window2Ubo, sizeof(Window2Ubo), 0);
+		DSWindow2.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// floor
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 4.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 2.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 2.0f));
 		FloorUbo.mvpMat = ViewPrj * World;
 		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
 		DSFloor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// bed
-		World = glm::translate(glm::mat4(1), glm::vec3(-2.0f, 0.0f, 1.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 1.0f));
 		BedUbo.mvpMat = ViewPrj * World;
 		DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
 		DSBed.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// closet
+		World = glm::translate(glm::mat4(1), glm::vec3(-5.75f, 0.0f, 4.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		ClosetUbo.mvpMat = ViewPrj * World;
+		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
+		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// desk
+		World = glm::translate(glm::mat4(1), glm::vec3(5.5f, 0.0f, 2.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 2.0f, 2.0f));
+		DeskUbo.mvpMat = ViewPrj * World;
+		DSDesk.map(currentImage, &DeskUbo, sizeof(DeskUbo), 0);
+		DSDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// gaming desk
+		World = glm::translate(glm::mat4(1), glm::vec3(5.3f, 0.0f, 6.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		GamingDeskUbo.mvpMat = ViewPrj * World;
+		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
+		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketPosition.z -= MOVE_SPEED * deltaT;
@@ -438,7 +531,7 @@ protected:
 		View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
 		                   rocketPosition, glm::vec3(0, 1, 0));
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 3.0f, 3.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 
 		RocketUbo.mvpMat = ViewPrj * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
