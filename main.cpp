@@ -59,7 +59,7 @@ protected:
 	Model<Vertex> MDesk;
 	Model<Vertex> MGamingDesk;
 	Model<Vertex> MRedColumn;
-	Model<Vertex> MWhiteColumn;
+	Model<Vertex> MClock;
 	Model<Vertex> MCoinSack;
 	Model<Vertex> MCoinStack;
 	Model<Vertex> MDoor;
@@ -79,7 +79,7 @@ protected:
 	DescriptorSet DSGamingDesk;
 	DescriptorSet DSDoor;
 	DescriptorSet DSRedColumn;
-	DescriptorSet DSWhiteColumn;
+	DescriptorSet DSClock;
 	DescriptorSet DSCoinSack;
 	DescriptorSet DSCoinStack;
 
@@ -100,7 +100,7 @@ protected:
 	UniformBufferObject DeskUbo;
 	UniformBufferObject GamingDeskUbo;
 	UniformBufferObject RedColumnUbo;
-	UniformBufferObject WhiteColumnUbo;
+	UniformBufferObject ClockUbo;
 	UniformBufferObject CoinSackUbo;
 	UniformBufferObject CoinStackUbo;
 	UniformBufferObject DoorUbo;
@@ -169,7 +169,7 @@ protected:
 		MDoor.init(this, &VD, "models/door.mgcg", MGCG);
 		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
 		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG);
-		MWhiteColumn.init(this, &VD, "models/white_column.mgcg", MGCG);
+		MClock.init(this, &VD, "models/clock.mgcg", MGCG);
 		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG);
 		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
 		// Create the textures
@@ -247,7 +247,7 @@ protected:
 		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		                  {1, TEXTURE, 0, &TFurniture},
 		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSWhiteColumn.init(this, &DSL,
+		DSClock.init(this, &DSL,
 		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		                  {1, TEXTURE, 0, &TFurniture},
 		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
@@ -283,7 +283,7 @@ protected:
 		DSDoor.cleanup();
 		DSDesk.cleanup();
 		DSRedColumn.cleanup();
-		DSWhiteColumn.cleanup();
+		DSClock.cleanup();
 		DSCoinSack.cleanup();
 		DSCoinStack.cleanup();
 	}
@@ -311,7 +311,7 @@ protected:
 		MDoor.cleanup();
 		MDesk.cleanup();
 		MRedColumn.cleanup();
-		MWhiteColumn.cleanup();
+		MClock.cleanup();
 		MCoinSack.cleanup();
 		MCoinStack.cleanup();
 
@@ -395,9 +395,9 @@ protected:
 		MRedColumn.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0, 0, 0);
 
-		DSWhiteColumn.bind(commandBuffer, PBlinn, 0, currentImage);
-		MWhiteColumn.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MWhiteColumn.indices.size()), 1, 0, 0, 0);
+		DSClock.bind(commandBuffer, PBlinn, 0, currentImage);
+		MClock.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
 		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinSack.bind(commandBuffer);
@@ -544,9 +544,7 @@ protected:
 		DSDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// gaming desk
-		World = glm::translate(glm::mat4(1), glm::vec3(5.3f, 0.0f, 6.0f));
-		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
-		                     glm::vec3(0.0f, 1.0f, 0.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.5f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
@@ -560,17 +558,17 @@ protected:
 		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// red column
-		World = glm::translate(glm::mat4(1), glm::vec3(-3.5f, 2.0f, 7.5f));
+		World = glm::translate(glm::mat4(1), glm::vec3(3.5f, 2.0f, 6.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
 		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo),0);
 		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// white column
-		World = glm::translate(glm::mat4(1), glm::vec3(-3.9f, 2.0f, 3.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(-5.5f, 2.0f, 3.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),glm::vec3(0.0f, 1.0f, 0.0f));
-		WhiteColumnUbo.mvpMat = ViewPrj * World;
-		DSWhiteColumn.map(currentImage, &WhiteColumnUbo, sizeof(WhiteColumnUbo),0);
-		DSWhiteColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		ClockUbo.mvpMat = ViewPrj * World;
+		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo),0);
+		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
