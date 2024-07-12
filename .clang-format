@@ -175,4 +175,4 @@ SpacesInParensOptions:
 SpacesInSquareBrackets: false
 Standard: c++17
 TabWidth: 4
-UseTab: ForIndentation
+UseTab: Always
