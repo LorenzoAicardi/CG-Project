@@ -64,6 +64,7 @@ protected:
 	Model<Vertex> MCoinStack;
 	Model<Vertex> MDoor;
 	Model<Vertex> MGamingPouf;
+	Model<Vertex> MLoungeChair;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -84,6 +85,7 @@ protected:
 	DescriptorSet DSCoinSack;
 	DescriptorSet DSCoinStack;
 	DescriptorSet DSGamingPouf;
+	DescriptorSet DSLoungeChair;
 
 	// Textures
 	Texture TFurniture;
@@ -109,6 +111,7 @@ protected:
 	UniformBufferObject CoinStackUbo;
 	UniformBufferObject DoorUbo;
 	UniformBufferObject GamingPoufUbo;
+	UniformBufferObject LoungeChairUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -177,6 +180,7 @@ protected:
 		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG);
 		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
 		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG);
+		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -271,6 +275,10 @@ protected:
 						  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						   {1, TEXTURE, 0, &TFurniture},
 						   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSLoungeChair.init(this, &DSL,
+						   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+							{1, TEXTURE, 0, &TFurniture},
+							{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -298,6 +306,7 @@ protected:
 		DSCoinSack.cleanup();
 		DSCoinStack.cleanup();
 		DSGamingPouf.cleanup();
+		DSLoungeChair.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -329,6 +338,7 @@ protected:
 		MCoinSack.cleanup();
 		MCoinStack.cleanup();
 		MGamingPouf.cleanup();
+		MLoungeChair.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -438,6 +448,12 @@ protected:
 		MGamingPouf.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MGamingPouf.indices.size()), 1,
+						 0, 0, 0);
+
+		DSLoungeChair.bind(commandBuffer, PBlinn, 0, currentImage);
+		MLoungeChair.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MLoungeChair.indices.size()), 1,
 						 0, 0, 0);
 	}
 
@@ -610,6 +626,14 @@ protected:
 		ClockUbo.mvpMat = ViewPrj * World;
 		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
 		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// lounge chair
+		World = glm::translate(glm::mat4(1), glm::vec3(-5.0f, 0.0f, 7.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(135.0f),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		LoungeChairUbo.mvpMat = ViewPrj * World;
+		DSLoungeChair.map(currentImage, &LoungeChairUbo, sizeof(LoungeChairUbo), 0);
+		DSLoungeChair.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
