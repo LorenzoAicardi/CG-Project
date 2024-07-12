@@ -85,6 +85,8 @@ protected:
 
 	// Textures
 	Texture TFurniture;
+	Texture TSack;
+	Texture TStack;
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
@@ -175,6 +177,8 @@ protected:
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
+		TSack.init(this, "textures/MoneySack_Albedo.png");
+		TStack.init(this, "textures/CoinStack_Albedo.png");
 
 		// Init local variables
 	}
@@ -228,17 +232,17 @@ protected:
 		            {1, TEXTURE, 0, &TFurniture},
 		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSGamingDesk.init(this, &DSL,
-		           {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		            {1, TEXTURE, 0, &TFurniture},
-		            {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSCloset.init(this, &DSL,
 		                  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		                   {1, TEXTURE, 0, &TFurniture},
 		                   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSDoor.init(this, &DSL,
+		DSCloset.init(this, &DSL,
 		              {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		               {1, TEXTURE, 0, &TFurniture},
 		               {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSDoor.init(this, &DSL,
+		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		             {1, TEXTURE, 0, &TFurniture},
+		             {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSDesk.init(this, &DSL,
 		            {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 		             {1, TEXTURE, 0, &TFurniture},
@@ -248,18 +252,17 @@ protected:
 		                  {1, TEXTURE, 0, &TFurniture},
 		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSClock.init(this, &DSL,
-		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                  {1, TEXTURE, 0, &TFurniture},
-		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		             {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		              {1, TEXTURE, 0, &TFurniture},
+		              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSCoinSack.init(this, &DSL,
-		                   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                    {1, TEXTURE, 0, &TFurniture},
-		                    {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSCoinStack.init(this, &DSL,
 		                {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-		                 {1, TEXTURE, 0, &TFurniture},
+		                 {1, TEXTURE, 0, &TSack},
 		                 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-
+		DSCoinStack.init(this, &DSL,
+		                 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		                  {1, TEXTURE, 0, &TStack},
+		                  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -295,6 +298,8 @@ protected:
 	void localCleanup() override {
 		// Cleanup textures
 		TFurniture.cleanup();
+		TSack.cleanup();
+		TStack.cleanup();
 
 		// Cleanup models
 		MRocket.cleanup();
@@ -377,37 +382,46 @@ protected:
 		                 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
 		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MGamingDesk.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MGamingDesk.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
+		                 0, 0, 0);
 
 		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCloset.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
 
 		DSDoor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDoor.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
 
 		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDesk.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
 
 		DSRedColumn.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRedColumn.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0,
+		                 0, 0);
 
 		DSClock.bind(commandBuffer, PBlinn, 0, currentImage);
 		MClock.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
 		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinSack.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
 
 		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinStack.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0, 0, 0);
-
-
+		vkCmdDrawIndexed(commandBuffer,
+		                 static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0,
+		                 0, 0);
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 5.0f);
@@ -554,34 +568,35 @@ protected:
 		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 		DoorUbo.mvpMat = ViewPrj * World;
-		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo),0);
+		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo), 0);
 		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// red column
 		World = glm::translate(glm::mat4(1), glm::vec3(3.5f, 2.0f, 6.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
-		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo),0);
+		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo), 0);
 		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// white column
 		World = glm::translate(glm::mat4(1), glm::vec3(-5.9f, 2.0f, 3.0f));
-		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
+		                     glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
-		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo),0);
+		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
 		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinSackUbo.mvpMat = ViewPrj * World;
-		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo),0);
+		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
 		DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin stack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
 		CoinStackUbo.mvpMat = ViewPrj * World;
-		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo),0);
+		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
 		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
