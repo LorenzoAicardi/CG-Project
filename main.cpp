@@ -172,7 +172,7 @@ protected:
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
 		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
 		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
-		MCloset.init(this, &VD, "models/closet.mgcg", MGCG);
+		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG);
 		MDoor.init(this, &VD, "models/door.mgcg", MGCG);
 		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
 		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG);
@@ -574,9 +574,9 @@ protected:
 		DSBed.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// closet
-		World = glm::translate(glm::mat4(1), glm::vec3(-5.75f, 0.0f, 4.0f));
-		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
-							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(-1.0f, 0.0f, 0.4f));
+		// World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
+		// 					 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClosetUbo.mvpMat = ViewPrj * World;
 		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
 		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
