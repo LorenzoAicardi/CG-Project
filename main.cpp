@@ -544,7 +544,7 @@ protected:
 		DSDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// gaming desk
-		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.5f));
+		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.7f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
