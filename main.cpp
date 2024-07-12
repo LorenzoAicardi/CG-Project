@@ -166,10 +166,10 @@ protected:
 
 		// init models
 		MRocket.init(this, &VD, "models/desk_lamp.mgcg", MGCG);
-		MWallN.init(this, &VD, "models/gray_wall.mgcg", MGCG);
-		MWallE.init(this, &VD, "models/gray_wall.mgcg", MGCG);
-		MWallS.init(this, &VD, "models/gray_wall.mgcg", MGCG);
-		MWallW.init(this, &VD, "models/gray_wall.mgcg", MGCG);
+		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG);
+		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG);
+		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG);
+		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG);
 		MWindow1.init(this, &VD, "models/window.mgcg", MGCG);
 		MWindow2.init(this, &VD, "models/window.mgcg", MGCG);
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
