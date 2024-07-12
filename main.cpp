@@ -65,6 +65,7 @@ protected:
 	Model<Vertex> MDoor;
 	Model<Vertex> MGamingPouf;
 	Model<Vertex> MLoungeChair;
+	Model<Vertex> MRecordTable;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -86,6 +87,7 @@ protected:
 	DescriptorSet DSCoinStack;
 	DescriptorSet DSGamingPouf;
 	DescriptorSet DSLoungeChair;
+	DescriptorSet DSRecordTable;
 
 	// Textures
 	Texture TFurniture;
@@ -112,6 +114,7 @@ protected:
 	UniformBufferObject DoorUbo;
 	UniformBufferObject GamingPoufUbo;
 	UniformBufferObject LoungeChairUbo;
+	UniformBufferObject RecordTableUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -181,6 +184,7 @@ protected:
 		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
 		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG);
 		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG);
+		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -279,6 +283,10 @@ protected:
 						   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							{1, TEXTURE, 0, &TFurniture},
 							{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSRecordTable.init(this, &DSL,
+						   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+							{1, TEXTURE, 0, &TFurniture},
+							{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -307,6 +315,7 @@ protected:
 		DSCoinStack.cleanup();
 		DSGamingPouf.cleanup();
 		DSLoungeChair.cleanup();
+		DSRecordTable.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -339,6 +348,7 @@ protected:
 		MCoinStack.cleanup();
 		MGamingPouf.cleanup();
 		MLoungeChair.cleanup();
+		MRecordTable.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -454,6 +464,12 @@ protected:
 		MLoungeChair.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MLoungeChair.indices.size()), 1,
+						 0, 0, 0);
+
+		DSRecordTable.bind(commandBuffer, PBlinn, 0, currentImage);
+		MRecordTable.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MRecordTable.indices.size()), 1,
 						 0, 0, 0);
 	}
 
@@ -575,8 +591,6 @@ protected:
 
 		// closet
 		World = glm::translate(glm::mat4(1), glm::vec3(-1.0f, 0.0f, 0.4f));
-		// World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
-		// 					 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClosetUbo.mvpMat = ViewPrj * World;
 		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
 		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -592,7 +606,6 @@ protected:
 
 		// gaming desk
 		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.7f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
 		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -601,7 +614,6 @@ protected:
 		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 1.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-180.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
 		GamingPoufUbo.mvpMat = ViewPrj * World;
 		DSGamingPouf.map(currentImage, &GamingPoufUbo, sizeof(GamingPoufUbo), 0);
 		DSGamingPouf.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -634,6 +646,15 @@ protected:
 		LoungeChairUbo.mvpMat = ViewPrj * World;
 		DSLoungeChair.map(currentImage, &LoungeChairUbo, sizeof(LoungeChairUbo), 0);
 		DSLoungeChair.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// record & TV table
+		World = glm::translate(glm::mat4(1), glm::vec3(-3.0f, 0.0f, 7.5f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(180.0f),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(1.5f, 1.5f, 1.5f));
+		RecordTableUbo.mvpMat = ViewPrj * World;
+		DSRecordTable.map(currentImage, &RecordTableUbo, sizeof(RecordTableUbo), 0);
+		DSRecordTable.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
