@@ -564,14 +564,14 @@ protected:
 		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// white column
-		World = glm::translate(glm::mat4(1), glm::vec3(-5.5f, 2.0f, 3.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(-5.9f, 2.0f, 3.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
 		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo),0);
 		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinSackUbo.mvpMat = ViewPrj * World;
 		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo),0);
