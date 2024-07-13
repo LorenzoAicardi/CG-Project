@@ -17,6 +17,7 @@ struct UniformBufferObject {
 struct GlobalUniformBufferObject {
 	alignas(16) glm::vec3 lightDir;
 	alignas(16) glm::vec4 lightColor;
+	alignas(16) glm::vec3 lightPos;
 	alignas(16) glm::vec3 eyePos;
 	alignas(16) glm::vec4 eyeDir;
 };
@@ -67,7 +68,8 @@ protected:
 	Model<Vertex> MGamingPouf;
 	Model<Vertex> MLoungeChair;
 	Model<Vertex> MRecordTable;
-    //Model<Vertex> MCoinTata;
+	Model<Vertex> MRoofLamp;
+	// Model<Vertex> MCoinTata;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
@@ -91,7 +93,8 @@ protected:
 	DescriptorSet DSGamingPouf;
 	DescriptorSet DSLoungeChair;
 	DescriptorSet DSRecordTable;
-    //DescriptorSet DSCoinTata;
+	DescriptorSet DSRoofLamp;
+	// DescriptorSet DSCoinTata;
 
 	// Textures
 	Texture TFurniture;
@@ -120,7 +123,13 @@ protected:
 	UniformBufferObject GamingPoufUbo;
 	UniformBufferObject LoungeChairUbo;
 	UniformBufferObject RecordTableUbo;
-    //UniformBufferObject CoinTataUbo;
+	UniformBufferObject RoofLampUbo;
+	// UniformBufferObject CoinTataUbo;
+
+	// shadow mapping
+	VkImage shadowMapImage;
+	VkImageView shadowMapImageView;
+	VkFramebuffer shadowMapFramebuffer;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -192,7 +201,8 @@ protected:
 		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG);
 		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG);
 		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG);
-        //MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
+		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG);
+		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
 
 		// Create the textures
 		// The second parameter is the file name
@@ -299,12 +309,16 @@ protected:
 						   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							{1, TEXTURE, 0, &TFurniture},
 							{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-        /*
-        DSCoinTata.init(this, &DSL,
-                        {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-                         {1, TEXTURE, 0, &TStack},
-                         {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-                         */
+		DSRoofLamp.init(this, &DSL,
+						{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						 {1, TEXTURE, 0, &TFurniture},
+						 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		/*
+		DSCoinTata.init(this, &DSL,
+						{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						 {1, TEXTURE, 0, &TStack},
+						 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						 */
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -335,7 +349,8 @@ protected:
 		DSGamingPouf.cleanup();
 		DSLoungeChair.cleanup();
 		DSRecordTable.cleanup();
-        //DSCoinTata.cleanup();
+		DSRoofLamp.cleanup();
+		// DSCoinTata.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -370,7 +385,8 @@ protected:
 		MGamingPouf.cleanup();
 		MLoungeChair.cleanup();
 		MRecordTable.cleanup();
-        //MCoinTata.cleanup();
+		MRoofLamp.cleanup();
+		// MCoinTata.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
@@ -498,32 +514,36 @@ protected:
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRecordTable.indices.size()), 1,
 						 0, 0, 0);
-        /*
-        DSCoinTata.bind(commandBuffer, PBlinn, 0, currentImage);
-        MCoinTata.bind(commandBuffer);
-        vkCmdDrawIndexed(commandBuffer,
-                         static_cast<uint32_t>(MCoinTata.indices.size()), 1,
-                         0, 0, 0);
-        */
+		DSRoofLamp.bind(commandBuffer, PBlinn, 0, currentImage);
+		MRoofLamp.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MRoofLamp.indices.size()), 1, 0, 0, 0);
+		/*
+		DSCoinTata.bind(commandBuffer, PBlinn, 0, currentImage);
+		MCoinTata.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MCoinTata.indices.size()), 1,
+						 0, 0, 0);
+		*/
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 rocketPosition = glm::vec3(0.0f, 1.0f, 4.0f);
+	glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
-    glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    const float ROT_SPEED = 50.0f;
-    const float MOVE_SPEED = 0.5f;
-    glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
-    glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
-    glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
-    float verticalSpeed = 0.0f;
-    glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
-    float GRAVITY_CONSTANT = 2.0f;
-    // Here is where you update the uniforms.
+	const float ROT_SPEED = 50.0f;
+	const float MOVE_SPEED = 0.5f;
+	glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
+	glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
+	glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
+	float verticalSpeed = 0.0f;
+	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
+	float GRAVITY_CONSTANT = 2.0f;
+	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -549,9 +569,9 @@ protected:
 		glm::mat4 World;
 		glm::mat4 ViewPrj = Prj * View;
 
-        // Rocket
+		// Rocket
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
-        World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
@@ -559,13 +579,14 @@ protected:
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-        // Walls
+		// Walls
 		// update global uniforms
 		GlobalUniformBufferObject gubo{};
 		gubo.lightDir =
-			glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
+			glm::vec3(cos(glm::radians(135.0f)), /** cos(cTime * angTurnTimeFact)*/
 					  sin(glm::radians(135.0f)),
-					  cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
+					  cos(glm::radians(135.0f))); /** sin(cTime * angTurnTimeFact));*/
+		gubo.lightPos = glm::vec3(0.0f, 3.6f, 4.0f);
 		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		gubo.eyePos = CamPos;
 
@@ -580,14 +601,14 @@ protected:
 		World = glm::translate(glm::mat4(1), glm::vec3(6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
 		DSWallE.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// south wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 8.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.0f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
 		DSWallS.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -596,7 +617,7 @@ protected:
 		World = glm::translate(glm::mat4(1), glm::vec3(-6.0f, 0.0f, 4.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
 		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -669,13 +690,14 @@ protected:
 
 		// door
 		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(1.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		DoorUbo.mvpMat = ViewPrj * World;
 		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo), 0);
 		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// red column
 		World = glm::translate(glm::mat4(1), glm::vec3(3.5f, 2.0f, 6.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
 		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo), 0);
 		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
@@ -705,6 +727,12 @@ protected:
 		DSRecordTable.map(currentImage, &RecordTableUbo, sizeof(RecordTableUbo), 0);
 		DSRecordTable.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
+		// roof lamp
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 3.8f, 4.0f));
+		RoofLampUbo.mvpMat = ViewPrj * World;
+		DSRoofLamp.map(currentImage, &RoofLampUbo, sizeof(RoofLampUbo), 0);
+		DSRoofLamp.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
@@ -719,13 +747,14 @@ protected:
 		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
 		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
-        /*
-        World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 6.0f));
-        World *= glm::scale(glm::mat4(1), glm::vec3(0.01f, 0.01f, 0.01f));
-        CoinTataUbo.mvpMat = ViewPrj * World;
-        DSCoinTata.map(currentImage, &CoinTataUbo, sizeof(CoinTataUbo), 0);
-        DSCoinTata.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
-        */
+		/*
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 6.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(0.01f, 0.01f, 0.01f));
+		CoinTataUbo.mvpMat = ViewPrj * World;
+		DSCoinTata.map(currentImage, &CoinTataUbo, sizeof(CoinTataUbo), 0);
+		DSCoinTata.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		*/
+
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketRotation.x -= 1.0f;
 		}
@@ -738,89 +767,92 @@ protected:
 		if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			rocketRotation.y -= 1.0f;
 		}
-		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { // Space only moves me forward
+		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
 			rocketDirection.z -= 1.0f;
 
-            glm::mat4 rocketRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-            rocketRotationMatrix = glm::rotate(rocketRotationMatrix, glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::vec3 newRocketDirection = glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
+			glm::mat4 rocketRotationMatrix =
+				glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y),
+							glm::vec3(0.0f, 1.0f, 0.0f));
+			rocketRotationMatrix =
+				glm::rotate(rocketRotationMatrix, glm::radians(rocketRotation.x),
+							glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::vec3 newRocketDirection =
+				glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
-            rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
-            // Cap maximum speed
+			rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
+			// Cap maximum speed
 
-            if(glm::length(rocketSpeed) > 1.0f)
-                rocketSpeed = glm::normalize(rocketSpeed) * 1.0f;
-            // Acceleration towards maximum speed
+			if(glm::length(rocketSpeed) > 1.0f)
+				rocketSpeed = glm::normalize(rocketSpeed) * 1.0f;
+			// Acceleration towards maximum speed
 
-            // Reset direction to avoid permanently going in the same direction
-            rocketDirection = {0,0,0};
-            // "Cancel" gravity while accelerating
-            verticalSpeed = 0.0f;
-        } else {
+			// Reset direction to avoid permanently going in the same direction
+			rocketDirection = {0, 0, 0};
+			// "Cancel" gravity while accelerating
+			verticalSpeed = 0.0f;
+		} else {
+			// Gravity (gravity constant can be lowered)
+			verticalSpeed += GRAVITY_CONSTANT * deltaT;
+			rocketPosition.y -= verticalSpeed * deltaT;
+			// Ground
+			if(rocketPosition.y < 0.0f) rocketPosition.y = 0.0f;
 
-            // Gravity (gravity constant can be lowered)
-            verticalSpeed += GRAVITY_CONSTANT * deltaT;
-            rocketPosition.y -= verticalSpeed * deltaT;
-            // Ground
-            if(rocketPosition.y < 0.0f)
-                rocketPosition.y = 0.0f;
+			// Deceleration towards minimum speed (0)
+			if(glm::length(rocketSpeed) > 0.0f) {
+				float speed = glm::length(rocketSpeed);
+				speed -= MOVE_SPEED * deltaT;
+				speed = glm::max(speed, 0.0f);
+				rocketSpeed = glm::normalize(rocketSpeed) * speed;
+			}
+			rocketDirection = {0, 0, 0};
+		}
 
-            // Deceleration towards minimum speed (0)
-            if(glm::length(rocketSpeed) > 0.0f) {
-                float speed = glm::length(rocketSpeed);
-                speed -= MOVE_SPEED * deltaT;
-                speed = glm::max(speed, 0.0f);
-                rocketSpeed = glm::normalize(rocketSpeed) * speed;
-            }
-            rocketDirection = {0,0,0};
-        }
-
-        // Camera controls
+		// Camera controls
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            rocketCameraRotation.y -= 1.0f;
+			rocketCameraRotation.y -= 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            rocketCameraRotation.y += 1.0f;
+			rocketCameraRotation.y += 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            rocketCameraRotation.x -= 1.0f;
+			rocketCameraRotation.x -= 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            rocketCameraRotation.x += 1.0f;
+			rocketCameraRotation.x += 1.0f;
 		}
 
-        if (rocketCameraRotation.y > 89.0f)
-            rocketCameraRotation.y = 89.0f;
-        if (rocketCameraRotation.y < -89.0f)
-            rocketCameraRotation.y = -89.0f;
-        if (rocketCameraRotation.x < -89.0f)
-            rocketCameraRotation.x = -89.0f;
-        if (rocketCameraRotation.x > 89.0f)
-            rocketCameraRotation.x = 89.0f;
+		if(rocketCameraRotation.y > 89.0f) rocketCameraRotation.y = 89.0f;
+		if(rocketCameraRotation.y < -89.0f) rocketCameraRotation.y = -89.0f;
+		if(rocketCameraRotation.x < -89.0f) rocketCameraRotation.x = -89.0f;
+		if(rocketCameraRotation.x > 89.0f) rocketCameraRotation.x = 89.0f;
 
-        // Update the rocket's position
-        rocketPosition += rocketSpeed * deltaT;
+		// Update the rocket's position
+		rocketPosition += rocketSpeed * deltaT;
 
-        // Update rocket world matrix
-        World = glm::translate(glm::mat4(1.0f), rocketPosition);
-        World *= glm::rotate(glm::mat4(1.0f),glm::radians(rocketRotation.y), glm::vec3(0.0f,1.0f,0.0f));
-        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+		// Update rocket world matrix
+		World = glm::translate(glm::mat4(1.0f), rocketPosition);
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 
-        // Update view matrix
-        float radius = 0.5f;
-        float camx = sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
-        float camz = cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
-        float camy = - sin (glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius; // + 3?
-        View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
-                           rocketPosition,
-                           glm::vec3(0,1,0));
+		// Update view matrix
+		float radius = 0.5f;
+		float camx =
+			sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+		float camz =
+			cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+		float camy = -sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) *
+					 radius;  // + 3?
+		View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
+						   rocketPosition, glm::vec3(0, 1, 0));
 
-        // Update mvpMat and map the rocket
+		// Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
-        rocketDirection = glm::vec3(0.0f,0.0f,0.0f);
+		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 };
 
