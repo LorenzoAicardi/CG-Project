@@ -295,7 +295,8 @@ protected:
     glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
     glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0,0,1));
     float verticalSpeed = 0.0f;
-    float rocketSpeed = 0.0f;
+    glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
+    float GRAVITY_CONSTANT = 2.0f;
     // Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -389,30 +390,39 @@ protected:
 
             glm::mat4 rocketRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
             rocketRotationMatrix = glm::rotate(rocketRotationMatrix, glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-
             glm::vec3 newRocketDirection = glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
-            rocketSpeed += MOVE_SPEED * deltaT;
+            rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
             // Cap maximum speed
-            if(rocketSpeed > 5.0f)
-                rocketSpeed = 5.0f;
+
+            if(glm::length(rocketSpeed) > 5.0f)
+                rocketSpeed = glm::normalize(rocketSpeed) * 5.0f;
             // Acceleration towards maximum speed
-            rocketPosition += newRocketDirection * rocketSpeed * deltaT; // MOVE_SPEED * deltaT
 
             // Reset direction to avoid permanently going in the same direction
             rocketDirection = {0,0,0};
             // "Cancel" gravity while accelerating
             verticalSpeed = 0.0f;
         } else {
-            // Gravity
-            verticalSpeed += 9.18 * deltaT;
+
+            // Gravity (gravity constant can be lowered)
+            verticalSpeed += GRAVITY_CONSTANT * deltaT;
             rocketPosition.y -= verticalSpeed * deltaT;
             // Ground
             if(rocketPosition.y < 0.0f)
                 rocketPosition.y = 0.0f;
-            rocketSpeed = 0.0f;
+
+            // Deceleration towards minimum speed (0)
+            if(glm::length(rocketSpeed) > 0.0f) {
+                float speed = glm::length(rocketSpeed);
+                speed -= MOVE_SPEED * deltaT;
+                speed = glm::max(speed, 0.0f);
+                rocketSpeed = glm::normalize(rocketSpeed) * speed;
+            }
+            rocketDirection = {0,0,0};
         }
 
+        // Camera controls
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
             rocketCameraRotation.y -= 1.0f;
 		}
@@ -435,6 +445,8 @@ protected:
         if (rocketCameraRotation.x > 89.0f)
             rocketCameraRotation.x = 89.0f;
 
+        // Update the rocket's position
+        rocketPosition += rocketSpeed * deltaT;
 
         // Update rocket world matrix
         World = glm::translate(glm::mat4(1.0f), rocketPosition);
@@ -442,6 +454,7 @@ protected:
         World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
         World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 
+        // Update view matrix
         float radius = 3.0f;
         float camx = sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
         float camz = cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
@@ -450,7 +463,7 @@ protected:
                            rocketPosition,
                            glm::vec3(0,1,0));
 
-
+        // Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 
