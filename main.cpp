@@ -54,6 +54,7 @@ protected:
 	Model<Vertex> MWindow1;
 	Model<Vertex> MWindow2;
 	Model<Vertex> MFloor;
+	Model<Vertex> MRoof;
 	Model<Vertex> MBed;
 	Model<Vertex> MCloset;
 	Model<Vertex> MDesk;
@@ -76,6 +77,7 @@ protected:
 	DescriptorSet DSWindow1;
 	DescriptorSet DSWindow2;
 	DescriptorSet DSFloor;
+	DescriptorSet DSRoof;
 	DescriptorSet DSBed;
 	DescriptorSet DSCloset;
 	DescriptorSet DSDesk;
@@ -103,6 +105,7 @@ protected:
 	UniformBufferObject Window1Ubo;
 	UniformBufferObject Window2Ubo;
 	UniformBufferObject FloorUbo;
+	UniformBufferObject RoofUbo;
 	UniformBufferObject BedUbo;
 	UniformBufferObject ClosetUbo;
 	UniformBufferObject DeskUbo;
@@ -173,6 +176,7 @@ protected:
 		MWindow1.init(this, &VD, "models/window.mgcg", MGCG);
 		MWindow2.init(this, &VD, "models/window.mgcg", MGCG);
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
+		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG);
 		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
 		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
 		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG);
@@ -239,6 +243,10 @@ protected:
 					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					  {1, TEXTURE, 0, &TFurniture},
 					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSRoof.init(this, &DSL,
+					{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					 {1, TEXTURE, 0, &TFurniture},
+					 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSBed.init(this, &DSL,
 				   {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &TFurniture},
@@ -304,6 +312,7 @@ protected:
 		DSWindow1.cleanup();
 		DSWindow2.cleanup();
 		DSFloor.cleanup();
+		DSRoof.cleanup();
 		DSBed.cleanup();
 		DSGamingDesk.cleanup();
 		DSCloset.cleanup();
@@ -337,6 +346,7 @@ protected:
 		MWindow1.cleanup();
 		MWindow2.cleanup();
 		MFloor.cleanup();
+		MRoof.cleanup();
 		MBed.cleanup();
 		MGamingDesk.cleanup();
 		MCloset.cleanup();
@@ -406,6 +416,11 @@ protected:
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
 
+		DSRoof.bind(commandBuffer, PBlinn, 0, currentImage);
+		MRoof.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MRoof.indices.size()), 1, 0, 0, 0);
+
 		DSBed.bind(commandBuffer, PBlinn, 0, currentImage);
 		MBed.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer,
@@ -473,7 +488,7 @@ protected:
 						 0, 0, 0);
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 5.0f);
+	glm::vec3 rocketPosition = glm::vec3(0.0f, 0.0f, 4.0f);
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
@@ -582,6 +597,15 @@ protected:
 		FloorUbo.mvpMat = ViewPrj * World;
 		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
 		DSFloor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+
+		// roof
+		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 4.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 2.0f));
+		RoofUbo.mvpMat = ViewPrj * World;
+		DSRoof.map(currentImage, &RoofUbo, sizeof(RoofUbo), 0);
+		DSRoof.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// bed
 		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 1.0f));
