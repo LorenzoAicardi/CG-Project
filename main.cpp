@@ -126,11 +126,6 @@ protected:
 	UniformBufferObject RoofLampUbo;
 	// UniformBufferObject CoinTataUbo;
 
-	// shadow mapping
-	VkImage shadowMapImage;
-	VkImageView shadowMapImageView;
-	VkFramebuffer shadowMapFramebuffer;
-
 	// Here you set the main application parameters
 	void setWindowParameters() override {
 		// window size, titile and initial background
