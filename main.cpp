@@ -600,7 +600,7 @@ protected:
 
 		// point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 2.0f, 4.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 4.0f, 4.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyePos = CamPos;
 
