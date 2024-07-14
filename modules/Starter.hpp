@@ -65,6 +65,11 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+struct BoundingBox {
+    glm::vec3 min;
+    glm::vec3 max;
+};
+
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
                                       const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
@@ -218,12 +223,12 @@ class Model {
 public:
 	std::vector<Vert> vertices{};
 	std::vector<uint32_t> indices{};
-	void loadModelOBJ(std::string file);
-	void loadModelGLTF(std::string file, bool encoded);
+	void loadModelOBJ(std::string file, std::vector<BoundingBox> &bbList);
+	void loadModelGLTF(std::string file, bool encoded, std::vector<BoundingBox> &bbList);
 	void createIndexBuffer();
 	void createVertexBuffer();
 
-	void init(BaseProject *bp, VertexDescriptor *VD, std::string file, ModelType MT);
+	void init(BaseProject *bp, VertexDescriptor *VD, std::string file, ModelType MT, std::vector<BoundingBox> &bbList);
 	void initMesh(BaseProject *bp, VertexDescriptor *VD);
 	void cleanup();
 	void bind(VkCommandBuffer commandBuffer);
@@ -393,6 +398,7 @@ protected:
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
+    std::vector<BoundingBox> bbList;
 
 	class VendorID {
 	public:
@@ -2021,7 +2027,7 @@ std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDes
 
 
 template<class Vert>
-void Model<Vert>::loadModelOBJ(std::string file) {
+void Model<Vert>::loadModelOBJ(std::string file, std::vector<BoundingBox> &bbList) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -2078,10 +2084,26 @@ void Model<Vert>::loadModelOBJ(std::string file) {
 	}
 	std::cout << "[OBJ] Vertices: " << vertices.size() << "\n";
 	std::cout << "Indices: " << indices.size() << "\n";
+
+    // Derive bounding box
+    BoundingBox bbox;
+    for(const auto &shape : shapes) {
+        bbox.min = glm::vec3(std::numeric_limits<float>::max());
+        bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
+        for (const auto &i: shape.mesh.indices) {
+            glm::vec3 vertex = glm::vec3(attrib.vertices[3 * i.vertex_index + 0],
+                                         attrib.vertices[3 * i.vertex_index + 1],
+                                         attrib.vertices[3 * i.vertex_index + 2]
+            );
+            bbox.min = glm::min(bbox.min, vertex);
+            bbox.max = glm::max(bbox.max, vertex);
+        }
+        bbList.push_back(bbox);
+    }
 }
 
 template<class Vert>
-void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
+void Model<Vert>::loadModelGLTF(std::string file, bool encoded, std::vector<BoundingBox> &bbList) {
 	tinygltf::Model model;
 	tinygltf::TinyGLTF loader;
 	std::string warn, err;
@@ -2294,6 +2316,49 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 	std::cout << "\t" << (encoded ? "[MGCG]" : "[GLTF]")
 	          << " Vertices: " << vertices.size()
 	          << "\n\tIndices: " << indices.size() << "\n";
+
+
+    BoundingBox bbox;
+
+    for(const auto &mesh : model.meshes) {
+        for(const auto &primitive : mesh.primitives) {
+            const float *bufferPos = nullptr;
+            bool meshHasPos = false;
+            int cntPos = 0;
+
+            auto pIt = primitive.attributes.find("POSITION");
+			if(pIt != primitive.attributes.end()) {
+				const tinygltf::Accessor &posAccessor = model.accessors[pIt->second];
+				const tinygltf::BufferView &posView =
+				    model.bufferViews[posAccessor.bufferView];
+				bufferPos = reinterpret_cast<const float *>(
+				    &(model.buffers[posView.buffer]
+				          .data[posAccessor.byteOffset + posView.byteOffset]));
+				meshHasPos = true;
+				cntPos = posAccessor.count;
+			} else {
+				if(VD->Position.hasIt) {
+					std::cout << "Warning: vertex layout has position, but "
+					             "file hasn't\n";
+				}
+			}
+
+            bbox.min = glm::vec3(std::numeric_limits<float>::max());
+            bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
+            for(int i = 0; i < cntPos; i++) {
+					glm::vec3 pos = {bufferPos[3 * i + 0], bufferPos[3 * i + 1],
+					                 bufferPos[3 * i + 2]};
+					glm::vec3 vertex = glm::vec3(bufferPos[3 * i + 0], bufferPos[3 * i + 1],
+                                                         bufferPos[3 * i + 2]);
+                    bbox.min = glm::min(bbox.min, vertex);
+                    bbox.max = glm::max(bbox.max, vertex);
+            }
+        }
+        bbList.push_back(bbox);
+    }
+
+
+    // std::cout << bbList[0].min << "\n";
 }
 
 template<class Vert>
@@ -2338,15 +2403,15 @@ void Model<Vert>::initMesh(BaseProject *bp, VertexDescriptor *vd) {
 
 template<class Vert>
 void Model<Vert>::init(BaseProject *bp, VertexDescriptor *vd, std::string file,
-                       ModelType MT) {
+                       ModelType MT, std::vector<BoundingBox> &bbList) {
 	BP = bp;
 	VD = vd;
 	if(MT == OBJ) {
-		loadModelOBJ(file);
+		loadModelOBJ(file, bbList);
 	} else if(MT == GLTF) {
-		loadModelGLTF(file, false);
+		loadModelGLTF(file, false, bbList);
 	} else if(MT == MGCG) {
-		loadModelGLTF(file, true);
+		loadModelGLTF(file, true, bbList);
 	}
 
 	createVertexBuffer();
