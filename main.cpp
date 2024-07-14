@@ -598,7 +598,7 @@ protected:
 		gubo.lightColor[0] = glm::vec4(1.0f);
 
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 3.6f, 4.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 3.5f, 4.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f);
 		gubo.eyePos = CamPos;
 

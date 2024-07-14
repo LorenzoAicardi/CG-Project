@@ -73,5 +73,5 @@ void main() {
     vec3 ambient = albedo * 0.025f;
     L += ambient;
 
-    outColor = vec4(fragUV, 0.0f, 1.0f);
+    outColor = vec4(L, 1.0f);
 }
