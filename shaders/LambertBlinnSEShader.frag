@@ -58,7 +58,7 @@ void main() {
     vec3 L = vec3(0);// solution of rendering equation
 
     // self-emission
-    L += albedo;
+    L += 0.7f * albedo;
 
     // lights
     vec3 lightDir = directLightDir(fragPos, 0);
