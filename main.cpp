@@ -15,9 +15,13 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir;
-	alignas(16) glm::vec4 lightColor;
-	alignas(16) glm::vec3 lightPos;
+	struct {
+		alignas(16) glm::vec3 v;
+	} lightDir[2];
+	struct {
+		alignas(16) glm::vec3 v;
+	} lightPos[2];
+	alignas(16) glm::vec4 lightColor[2];
 	alignas(16) glm::vec3 eyePos;
 	alignas(16) glm::vec4 eyeDir;
 };
@@ -42,7 +46,10 @@ protected:
 	VertexDescriptor VD;
 
 	// Pipelines [Shader couples]
+	/// Lambert+Blinn
 	Pipeline PBlinn;
+	/// self-emissive objects (e.g. lamps)
+	Pipeline PEmission;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex
@@ -173,6 +180,8 @@ protected:
 		// init pipelines
 		PBlinn.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					"shaders/LambertBlinnShaderFrag.spv", {&DSL});
+		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
+					   "shaders/LambertBlinnSEShaderFrag.spv", {&DSL});
 
 		// init models
 		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ);
@@ -212,6 +221,7 @@ protected:
 	void pipelinesAndDescriptorSetsInit() override {
 		// This creates a new pipeline (with the current surface), using its shaders
 		PBlinn.create();
+		PEmission.create();
 
 		// Here you define the data set
 		DSRocket.init(this, &DSL,
@@ -321,6 +331,7 @@ protected:
 	void pipelinesAndDescriptorSetsCleanup() override {
 		// Cleanup pipelines
 		PBlinn.cleanup();
+		PEmission.cleanup();
 
 		// Cleanup descriptor sets
 		DSRocket.cleanup();
@@ -388,6 +399,7 @@ protected:
 
 		// Destroys the pipelines
 		PBlinn.destroy();
+		PEmission.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -396,121 +408,122 @@ protected:
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) override {
 		// binds the pipeline
 		PBlinn.bind(commandBuffer);
-		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 
 		// binds the data sets
-		DSRocket.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRocket.bind(commandBuffer);
+		DSRocket.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 
-		DSWallN.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallN.bind(commandBuffer);
+		DSWallN.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWallN.indices.size()), 1, 0, 0, 0);
 
-		DSWallE.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallE.bind(commandBuffer);
+		DSWallE.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWallE.indices.size()), 1, 0, 0, 0);
 
-		DSWallS.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallS.bind(commandBuffer);
+		DSWallS.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWallS.indices.size()), 1, 0, 0, 0);
 
-		DSWallW.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWallW.bind(commandBuffer);
+		DSWallW.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWallW.indices.size()), 1, 0, 0, 0);
 
-		DSWindow1.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWindow1.bind(commandBuffer);
+		DSWindow1.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWindow1.indices.size()), 1, 0, 0, 0);
 
-		DSWindow2.bind(commandBuffer, PBlinn, 0, currentImage);
 		MWindow2.bind(commandBuffer);
+		DSWindow2.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MWindow2.indices.size()), 1, 0, 0, 0);
 
-		DSFloor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MFloor.bind(commandBuffer);
+		DSFloor.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
 
-		DSRoof.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRoof.bind(commandBuffer);
+		DSRoof.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRoof.indices.size()), 1, 0, 0, 0);
 
-		DSBed.bind(commandBuffer, PBlinn, 0, currentImage);
 		MBed.bind(commandBuffer);
+		DSBed.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MBed.indices.size()), 1, 0, 0, 0);
 
-		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MGamingDesk.bind(commandBuffer);
+		DSGamingDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MGamingDesk.indices.size()), 1,
 						 0, 0, 0);
 
-		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCloset.bind(commandBuffer);
+		DSCloset.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCloset.indices.size()), 1, 0, 0, 0);
 
-		DSDoor.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDoor.bind(commandBuffer);
+		DSDoor.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MDoor.indices.size()), 1, 0, 0, 0);
 
-		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		MDesk.bind(commandBuffer);
+		DSDesk.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MDesk.indices.size()), 1, 0, 0, 0);
 
-		DSRedColumn.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRedColumn.bind(commandBuffer);
+		DSRedColumn.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRedColumn.indices.size()), 1, 0,
 						 0, 0);
 
-		DSClock.bind(commandBuffer, PBlinn, 0, currentImage);
 		MClock.bind(commandBuffer);
+		DSClock.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
-		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinSack.bind(commandBuffer);
+		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
 
-		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
 		MCoinStack.bind(commandBuffer);
+		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0,
 						 0, 0);
 
-		DSGamingPouf.bind(commandBuffer, PBlinn, 0, currentImage);
 		MGamingPouf.bind(commandBuffer);
+		DSGamingPouf.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MGamingPouf.indices.size()), 1,
 						 0, 0, 0);
 
-		DSLoungeChair.bind(commandBuffer, PBlinn, 0, currentImage);
 		MLoungeChair.bind(commandBuffer);
+		DSLoungeChair.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MLoungeChair.indices.size()), 1,
 						 0, 0, 0);
 
-		DSRecordTable.bind(commandBuffer, PBlinn, 0, currentImage);
 		MRecordTable.bind(commandBuffer);
+		DSRecordTable.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRecordTable.indices.size()), 1,
 						 0, 0, 0);
-		DSRoofLamp.bind(commandBuffer, PBlinn, 0, currentImage);
+
+		PEmission.bind(commandBuffer);
 		MRoofLamp.bind(commandBuffer);
+		DSRoofLamp.bind(commandBuffer, PEmission, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRoofLamp.indices.size()), 1, 0, 0, 0);
 		/*
@@ -538,6 +551,7 @@ protected:
 	float verticalSpeed = 0.0f;
 	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
 	float GRAVITY_CONSTANT = 2.0f;
+
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -574,15 +588,18 @@ protected:
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-		// Walls
 		// update global uniforms
 		GlobalUniformBufferObject gubo{};
-		gubo.lightDir =
+		gubo.lightDir[0].v =
 			glm::vec3(cos(glm::radians(135.0f)), /** cos(cTime * angTurnTimeFact)*/
 					  sin(glm::radians(135.0f)),
 					  cos(glm::radians(135.0f))); /** sin(cTime * angTurnTimeFact));*/
-		gubo.lightPos = glm::vec3(0.0f, 3.6f, 4.0f);
-		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		gubo.lightPos[0].v = glm::vec3(7.0f, 0.0f, -2.0f);
+		gubo.lightColor[0] = glm::vec4(1.0f);
+
+		gubo.lightDir[1].v = glm::vec3(0.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 3.6f, 4.0f);
+		gubo.lightColor[1] = glm::vec4(1.0f);
 		gubo.eyePos = CamPos;
 
 		// north wall
@@ -590,7 +607,7 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
-		DSWallN.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWallN.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// east wall
 		World = glm::translate(glm::mat4(1), glm::vec3(6.0f, 0.0f, 4.0f));
@@ -599,14 +616,14 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
-		DSWallE.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWallE.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// south wall
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 8.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.0f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
-		DSWallS.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWallS.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// west wall
 		World = glm::translate(glm::mat4(1), glm::vec3(-6.0f, 0.0f, 4.0f));
@@ -615,7 +632,7 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
-		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWallW.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// windows
 		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 2.0f));
@@ -623,21 +640,21 @@ protected:
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window1Ubo.mvpMat = ViewPrj * World;
 		DSWindow1.map(currentImage, &Window1Ubo, sizeof(Window1Ubo), 0);
-		DSWindow1.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWindow1.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 6.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window2Ubo.mvpMat = ViewPrj * World;
 		DSWindow2.map(currentImage, &Window2Ubo, sizeof(Window2Ubo), 0);
-		DSWindow2.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSWindow2.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// floor
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 4.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 2.0f));
 		FloorUbo.mvpMat = ViewPrj * World;
 		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
-		DSFloor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSFloor.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// roof
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 4.0f, 0.0f));
@@ -646,19 +663,19 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 2.0f));
 		RoofUbo.mvpMat = ViewPrj * World;
 		DSRoof.map(currentImage, &RoofUbo, sizeof(RoofUbo), 0);
-		DSRoof.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRoof.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// bed
 		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 1.0f));
 		BedUbo.mvpMat = ViewPrj * World;
 		DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
-		DSBed.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSBed.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// closet
 		World = glm::translate(glm::mat4(1), glm::vec3(-1.0f, 0.0f, 0.4f));
 		ClosetUbo.mvpMat = ViewPrj * World;
 		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
-		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSCloset.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// desk
 		World = glm::translate(glm::mat4(1), glm::vec3(5.5f, 0.0f, 2.0f));
@@ -667,13 +684,13 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 2.0f, 2.0f));
 		DeskUbo.mvpMat = ViewPrj * World;
 		DSDesk.map(currentImage, &DeskUbo, sizeof(DeskUbo), 0);
-		DSDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSDesk.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// gaming desk
 		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.7f));
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
-		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSGamingDesk.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// gaming pouf
 		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 1.0f));
@@ -681,21 +698,21 @@ protected:
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		GamingPoufUbo.mvpMat = ViewPrj * World;
 		DSGamingPouf.map(currentImage, &GamingPoufUbo, sizeof(GamingPoufUbo), 0);
-		DSGamingPouf.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSGamingPouf.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// door
 		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		DoorUbo.mvpMat = ViewPrj * World;
 		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo), 0);
-		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSDoor.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// red column
 		World = glm::translate(glm::mat4(1), glm::vec3(3.5f, 2.0f, 6.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
 		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo), 0);
-		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRedColumn.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// white column
 		World = glm::translate(glm::mat4(1), glm::vec3(-5.9f, 2.0f, 3.0f));
@@ -703,7 +720,7 @@ protected:
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
 		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
-		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSClock.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// lounge chair
 		World = glm::translate(glm::mat4(1), glm::vec3(-5.0f, 0.0f, 7.0f));
@@ -711,7 +728,7 @@ protected:
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		LoungeChairUbo.mvpMat = ViewPrj * World;
 		DSLoungeChair.map(currentImage, &LoungeChairUbo, sizeof(LoungeChairUbo), 0);
-		DSLoungeChair.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSLoungeChair.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// record & TV table
 		World = glm::translate(glm::mat4(1), glm::vec3(-3.0f, 0.0f, 7.5f));
@@ -720,27 +737,27 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.5f, 1.5f, 1.5f));
 		RecordTableUbo.mvpMat = ViewPrj * World;
 		DSRecordTable.map(currentImage, &RecordTableUbo, sizeof(RecordTableUbo), 0);
-		DSRecordTable.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRecordTable.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// roof lamp
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 3.8f, 4.0f));
 		RoofLampUbo.mvpMat = ViewPrj * World;
 		DSRoofLamp.map(currentImage, &RoofLampUbo, sizeof(RoofLampUbo), 0);
-		DSRoofLamp.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRoofLamp.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// coin sack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinSackUbo.mvpMat = ViewPrj * World;
 		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
-		DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSCoinSack.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// coin stack
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
 		CoinStackUbo.mvpMat = ViewPrj * World;
 		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
-		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSCoinStack.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		/*
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 6.0f));
