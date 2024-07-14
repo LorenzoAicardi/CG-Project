@@ -1,6 +1,7 @@
 // This has been adapted from the Vulkan tutorial
 
 #include "modules/Starter.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -30,8 +31,8 @@ struct Vertex {
 };
 
 struct SphereCollider {
-    glm::vec3 center;
-    float radius;
+	glm::vec3 center;
+	float radius;
 };
 
 class ConfigManager : public BaseProject {
@@ -180,7 +181,7 @@ protected:
 
 		// init models
 		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ, bbList);
-        MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
+		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
 		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
 		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
 		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
@@ -202,10 +203,11 @@ protected:
 		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, bbList);
 		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, bbList);
 		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
-        for (int i = 0; i < bbList.size(); i++)
-            std::cout << "BOUNDING BOX " << i << ": " << bbList[i].min[0] << ","
-                      << bbList[i].min[1] << ","  << bbList[i].min[2] << "," << bbList[i].max[0] << "," << bbList[i].max[1] << ","
-                      << bbList[i].max[2] << " OLLEEEEEEEEEEEEEEEEE \n";
+		for(int i = 0; i < bbList.size(); i++)
+			std::cout << "BOUNDING BOX " << i << ": " << bbList[i].min[0] << ","
+					  << bbList[i].min[1] << "," << bbList[i].min[2] << ","
+					  << bbList[i].max[0] << "," << bbList[i].max[1] << ","
+					  << bbList[i].max[2] << " OLLEEEEEEEEEEEEEEEEE \n";
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
@@ -546,63 +548,65 @@ protected:
 	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
 	float GRAVITY_CONSTANT = 2.0f;
 
-    bool isPlaced[22] = {0};
-    glm::vec3 ogRocketMin;
-    glm::vec3 ogRocketMax;
+	bool isPlaced[22] = {0};
+	glm::vec3 ogRocketMin;
+	glm::vec3 ogRocketMax;
 
-    SphereCollider rocketCollider;
+	SphereCollider rocketCollider;
 
-    // Helper function for checking collisions
-    bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
+	// Helper function for checking collisions
+	bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
+		float x = glm::max(box.min.x, glm::min(sphere.center.x, box.max.x));
+		float y = glm::max(box.min.y, glm::min(sphere.center.y, box.max.y));
+		float z = glm::max(box.min.z, glm::min(sphere.center.z, box.max.z));
 
-        float x = glm::max(box.min.x, glm::min(sphere.center.x, box.max.x));
-        float y = glm::max(box.min.y, glm::min(sphere.center.y, box.max.y));
-        float z = glm::max(box.min.z, glm::min(sphere.center.z, box.max.z));
+		// this is the same as isPointInsideSphere
+		float distance = glm::sqrt((x - sphere.center.x) * (x - sphere.center.x) +
+								   (y - sphere.center.y) * (y - sphere.center.y) +
+								   (z - sphere.center.z) * (z - sphere.center.z));
 
-        // this is the same as isPointInsideSphere
-        float distance = glm::sqrt(
-                (x - sphere.center.x) * (x - sphere.center.x) +
-                (y - sphere.center.y) * (y - sphere.center.y) +
-                (z - sphere.center.z) * (z - sphere.center.z)
-        );
+		return distance < sphere.radius;
 
-        return distance < sphere.radius;
+		/*
+		return (
+				box1.min.x <= box2.max.x &&
+				box1.max.x >= box2.min.x &&
+				box1.min.y <= box2.max.y &&
+				box1.max.y >= box2.min.y &&
+				box1.min.z <= box2.max.y &&
+				box1.max.z >= box2.min.z
+		);
+		 */
+	}
 
-        /*
-        return (
-                box1.min.x <= box2.max.x &&
-                box1.max.x >= box2.min.x &&
-                box1.min.y <= box2.max.y &&
-                box1.max.y >= box2.min.y &&
-                box1.min.z <= box2.max.y &&
-                box1.max.z >= box2.min.z
-        );
-         */
-    }
+	void placeObject(int index, bool (&placed)[22], glm::mat4& World,
+					 std::vector<BoundingBox>& bbList) {
+		glm::vec4 homogeneousPoint;
+		if(!placed[index]) {
+			std::cout << index << " Pre min: " << bbList[index].min[0] << ", "
+					  << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
+			std::cout << index << " Pre max: " << bbList[index].max[0] << ", "
+					  << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
 
-    void placeObject(int index, bool (&placed)[22], glm::mat4 &World, std::vector<BoundingBox> &bbList) {
-        glm::vec4 homogeneousPoint;
-        if (!placed[index]) {
-            std::cout << index << " Pre min: " << bbList[index].min[0] << ", " << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
-            std::cout << index << " Pre max: " << bbList[index].max[0] << ", " << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
+			homogeneousPoint = glm::vec4(bbList[index].min, 1.0f);
+			glm::vec4 newPoint = World * homogeneousPoint;
+			bbList[index].min = glm::vec3(newPoint);
 
-            homogeneousPoint = glm::vec4(bbList[index].min, 1.0f);
-            glm::vec4 newPoint = World * homogeneousPoint;
-            bbList[index].min = glm::vec3(newPoint);
+			homogeneousPoint = glm::vec4(bbList[index].max, 1.0f);
+			newPoint = World * homogeneousPoint;
+			bbList[index].max = glm::vec3(newPoint);
 
-            homogeneousPoint = glm::vec4(bbList[index].max, 1.0f);
-            newPoint = World * homogeneousPoint;
-            bbList[index].max = glm::vec3(newPoint);
+			std::cout << index << " Post min: " << bbList[index].min[0] << ", "
+					  << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
+			std::cout << index << " Post max: " << bbList[index].max[0] << ", "
+					  << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
+			placed[index] = true;
+		}
+	}
 
-            std::cout << index << " Post min: " << bbList[index].min[0] << ", " << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
-            std::cout << index << " Post max: " << bbList[index].max[0] << ", " << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
-            placed[index] = true;
-        }
-    }
-
-    // Here is where you update the uniforms.
-    // Very likely this will be where you will be writing the logic of your application.
-    void updateUniformBuffer(uint32_t currentImage) override {
+	// Here is where you update the uniforms.
+	// Very likely this will be where you will be writing the logic of your application.
+	void updateUniformBuffer(uint32_t currentImage) override {
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
@@ -626,21 +630,22 @@ protected:
 		glm::mat4 World;
 		glm::mat4 ViewPrj = Prj * View;
 
-        glm::vec4 homogeneousPoint;
+		glm::vec4 homogeneousPoint;
 		// Rocket
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
 		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 		RocketUbo.mvpMat = Prj * View * World;
-        if (!isPlaced[0]) {
-            placeObject(0, isPlaced, World, bbList);
+		if(!isPlaced[0]) {
+			placeObject(0, isPlaced, World, bbList);
 
-            ogRocketMin = bbList[0].min;
-            ogRocketMax = bbList[0].max;
+			ogRocketMin = bbList[0].min;
+			ogRocketMax = bbList[0].max;
 
-            rocketCollider.center = rocketPosition;
-            rocketCollider.radius = 0.5f;
-        }
-        DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
+			rocketCollider.center = rocketPosition;
+			rocketCollider.radius = 0.5f;
+			isPlaced[0] = true;
+		}
+		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
@@ -658,181 +663,202 @@ protected:
 		gubo.eyePos = CamPos;
 
 		// north wall
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
-        placeObject(1, isPlaced, World, bbList);
-        DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
+		placeObject(1, isPlaced, World, bbList);
+		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
 		DSWallN.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// east wall
-		World = glm::translate(glm::mat4(1), glm::vec3(6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
-        placeObject(2, isPlaced, World, bbList);
-        DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
+		placeObject(2, isPlaced, World, bbList);
+		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
 		DSWallE.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// south wall
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 8.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 0.0f, 8.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.0f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
-        placeObject(3, isPlaced, World, bbList);
-        DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
+		placeObject(3, isPlaced, World, bbList);
+		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
 		DSWallS.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// west wall
-		World = glm::translate(glm::mat4(1), glm::vec3(-6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
-        placeObject(4, isPlaced, World, bbList);
-        DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
+		placeObject(4, isPlaced, World, bbList);
+		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
 		DSWallW.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// windows
-		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 2.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(5.8f, 2.5f, 2.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window1Ubo.mvpMat = ViewPrj * World;
-        placeObject(5, isPlaced, World, bbList);
-        DSWindow1.map(currentImage, &Window1Ubo, sizeof(Window1Ubo), 0);
+		placeObject(5, isPlaced, World, bbList);
+		DSWindow1.map(currentImage, &Window1Ubo, sizeof(Window1Ubo), 0);
 		DSWindow1.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
-		World = glm::translate(glm::mat4(1), glm::vec3(5.8f, 2.5f, 6.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(5.8f, 2.5f, 6.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window2Ubo.mvpMat = ViewPrj * World;
-        placeObject(6, isPlaced, World, bbList);
-        DSWindow2.map(currentImage, &Window2Ubo, sizeof(Window2Ubo), 0);
+		placeObject(6, isPlaced, World, bbList);
+		DSWindow2.map(currentImage, &Window2Ubo, sizeof(Window2Ubo), 0);
 		DSWindow2.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// floor
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 2.0f));
 		FloorUbo.mvpMat = ViewPrj * World;
-        placeObject(7, isPlaced, World, bbList);
-        DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
+		placeObject(7, isPlaced, World, bbList);
+		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
 		DSFloor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// roof
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 4.0f, 0.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 4.0f, 0.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 2.0f));
 		RoofUbo.mvpMat = ViewPrj * World;
-        placeObject(8, isPlaced, World, bbList);
-        DSRoof.map(currentImage, &RoofUbo, sizeof(RoofUbo), 0);
+		placeObject(8, isPlaced, World, bbList);
+		DSRoof.map(currentImage, &RoofUbo, sizeof(RoofUbo), 0);
 		DSRoof.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// bed
-		World = glm::translate(glm::mat4(1), glm::vec3(-4.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-4.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
 		BedUbo.mvpMat = ViewPrj * World;
-        placeObject(9, isPlaced, World, bbList);
-        DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
+		placeObject(9, isPlaced, World, bbList);
+		DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
 		DSBed.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// closet
-		World = glm::translate(glm::mat4(1), glm::vec3(-1.0f, 0.0f, 0.4f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-1.0f, 0.0f, 0.4f) + glm::vec3(10.0f));
 		ClosetUbo.mvpMat = ViewPrj * World;
-        placeObject(10, isPlaced, World, bbList);
-        DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
+		placeObject(10, isPlaced, World, bbList);
+		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
 		DSCloset.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// desk
-		World = glm::translate(glm::mat4(1), glm::vec3(5.5f, 0.0f, 2.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(5.5f, 0.0f, 2.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 2.0f, 2.0f));
 		DeskUbo.mvpMat = ViewPrj * World;
-        placeObject(11, isPlaced, World, bbList);
-        DSDesk.map(currentImage, &DeskUbo, sizeof(DeskUbo), 0);
+		placeObject(11, isPlaced, World, bbList);
+		DSDesk.map(currentImage, &DeskUbo, sizeof(DeskUbo), 0);
 		DSDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// gaming desk
-		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 0.7f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(3.0f, 0.0f, 0.7f) + glm::vec3(10.0f));
 		GamingDeskUbo.mvpMat = ViewPrj * World;
-        placeObject(12, isPlaced, World, bbList);
-        DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
+		placeObject(12, isPlaced, World, bbList);
+		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
 		DSGamingDesk.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// gaming pouf
-		World = glm::translate(glm::mat4(1), glm::vec3(3.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(3.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-180.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		GamingPoufUbo.mvpMat = ViewPrj * World;
-        placeObject(13, isPlaced, World, bbList);
-        DSGamingPouf.map(currentImage, &GamingPoufUbo, sizeof(GamingPoufUbo), 0);
+		placeObject(13, isPlaced, World, bbList);
+		DSGamingPouf.map(currentImage, &GamingPoufUbo, sizeof(GamingPoufUbo), 0);
 		DSGamingPouf.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// door
-		World = glm::translate(glm::mat4(1), glm::vec3(-0.5f, 0.0f, 7.9f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-0.5f, 0.0f, 7.9f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		DoorUbo.mvpMat = ViewPrj * World;
-        placeObject(14, isPlaced, World, bbList);
-        DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo), 0);
+		placeObject(14, isPlaced, World, bbList);
+		DSDoor.map(currentImage, &DoorUbo, sizeof(DoorUbo), 0);
 		DSDoor.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// red column
-		World = glm::translate(glm::mat4(1), glm::vec3(3.5f, 2.0f, 6.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(3.5f, 2.0f, 6.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
-        placeObject(15, isPlaced, World, bbList);
-        DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo), 0);
+		placeObject(15, isPlaced, World, bbList);
+		DSRedColumn.map(currentImage, &RedColumnUbo, sizeof(RedColumnUbo), 0);
 		DSRedColumn.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// clock
-		World = glm::translate(glm::mat4(1), glm::vec3(-5.9f, 2.0f, 3.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-5.9f, 2.0f, 3.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
-        placeObject(16, isPlaced, World, bbList);
-        DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
+		placeObject(16, isPlaced, World, bbList);
+		DSClock.map(currentImage, &ClockUbo, sizeof(ClockUbo), 0);
 		DSClock.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// lounge chair
-		World = glm::translate(glm::mat4(1), glm::vec3(-5.0f, 0.0f, 7.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-5.0f, 0.0f, 7.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(135.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		LoungeChairUbo.mvpMat = ViewPrj * World;
-        placeObject(17, isPlaced, World, bbList);
-        DSLoungeChair.map(currentImage, &LoungeChairUbo, sizeof(LoungeChairUbo), 0);
+		placeObject(17, isPlaced, World, bbList);
+		DSLoungeChair.map(currentImage, &LoungeChairUbo, sizeof(LoungeChairUbo), 0);
 		DSLoungeChair.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// record & TV table
-		World = glm::translate(glm::mat4(1), glm::vec3(-3.0f, 0.0f, 7.5f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(-3.0f, 0.0f, 7.5f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(180.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.5f, 1.5f, 1.5f));
 		RecordTableUbo.mvpMat = ViewPrj * World;
-        placeObject(18, isPlaced, World, bbList);
-        DSRecordTable.map(currentImage, &RecordTableUbo, sizeof(RecordTableUbo), 0);
+		placeObject(18, isPlaced, World, bbList);
+		DSRecordTable.map(currentImage, &RecordTableUbo, sizeof(RecordTableUbo), 0);
 		DSRecordTable.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// roof lamp
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 3.8f, 4.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 3.8f, 4.0f) + glm::vec3(10.0f));
 		RoofLampUbo.mvpMat = ViewPrj * World;
-        placeObject(19, isPlaced, World, bbList);
-        DSRoofLamp.map(currentImage, &RoofLampUbo, sizeof(RoofLampUbo), 0);
+		placeObject(19, isPlaced, World, bbList);
+		DSRoofLamp.map(currentImage, &RoofLampUbo, sizeof(RoofLampUbo), 0);
 		DSRoofLamp.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinSackUbo.mvpMat = ViewPrj * World;
-        placeObject(20, isPlaced, World, bbList);
-        DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
+		placeObject(20, isPlaced, World, bbList);
+		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
 		DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin stack
-		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 2.0f) + glm::vec3(10.0f));
+		World = glm::translate(glm::mat4(1),
+							   glm::vec3(0.0f, 1.0f, 2.0f) + glm::vec3(10.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
 		CoinStackUbo.mvpMat = ViewPrj * World;
-        placeObject(21, isPlaced, World, bbList);
-        DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
+		placeObject(21, isPlaced, World, bbList);
+		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
 		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		/*
@@ -914,72 +940,101 @@ protected:
 		if(rocketCameraRotation.x < -89.0f) rocketCameraRotation.x = -89.0f;
 		if(rocketCameraRotation.x > 89.0f) rocketCameraRotation.x = 89.0f;
 
-        // Need to check collisions first
-        bool isCollision = false;
-        for (int i = 1; i < bbList.size(); i++) {
-            if(rocketPosition.x > 15.8 && rocketPosition.x < 16.2 && i == 2) {
-                /*
-                std::cout << "Rocket bounding box: " << bbList[0].min[0] << " " << bbList[0].min[1] << " " << bbList[0].min[2] << " " << bbList[0].max[0]
-                        << " " << bbList[0].max[1] << " " << bbList[0].max[2] << "\n";
-                std::cout << "East wall bounding box: " << bbList[i].min[0] << " " << bbList[i].min[1] << " " << bbList[i].min[2] << " " << bbList[i].max[0]
-                        << " " << bbList[i].max[1] << " " << bbList[i].max[2] << "\n";
+		// Need to check collisions first
+		bool isCollision = false;
+		for(int i = 1; i < bbList.size(); i++) {
+			if(rocketPosition.x > 6.8 && rocketPosition.x < 7.2) {
+				/*
+				std::cout << "Rocket bounding box: " << bbList[0].min[0] << " " << bbList[0].min[1] << " " << bbList[0].min[2] << " " << bbList[0].max[0]
+						<< " " << bbList[0].max[1] << " " << bbList[0].max[2] << "\n";
+				std::cout << "East wall bounding box: " << bbList[i].min[0] << " " << bbList[i].min[1] << " " << bbList[i].min[2] << " " << bbList[i].max[0]
+						<< " " << bbList[i].max[1] << " " << bbList[i].max[2] << "\n";
 
-                std::cout << (bbList[0].min.x <= bbList[i].max.x) <<
-                        (bbList[0].max.x >= bbList[i].min.x) <<
-                        (bbList[0].min.y <= bbList[i].max.y) <<
-                        (bbList[0].max.y >= bbList[i].min.y) <<
-                        (bbList[0].min.z <= bbList[i].max.y) <<
-                        (bbList[0].max.z >= bbList[i].min.z) << "\n";
-                */
-            }
-            if (checkCollision(rocketCollider, bbList[i])) {
-                isCollision = true;
-                std::cout << i << "\n";
-                break;
-            }
-        }
+				std::cout << (bbList[0].min.x <= bbList[i].max.x) <<
+						(bbList[0].max.x >= bbList[i].min.x) <<
+						(bbList[0].min.y <= bbList[i].max.y) <<
+						(bbList[0].max.y >= bbList[i].min.y) <<
+						(bbList[0].min.z <= bbList[i].max.y) <<
+						(bbList[0].max.z >= bbList[i].min.z) << "\n";
+				*/
 
-        // Update the rocket's position based on collision or not
-        if(!isCollision)
-            rocketPosition += rocketSpeed * deltaT;
-        else
-            rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+				std::cout << "Rocket bounding box: "
+						  << "\n\tcenter: " << glm::to_string(rocketCollider.center)
+						  << "\n\tradius: " << rocketCollider.radius << "\n";
+				std::cout << "West wall bounding box: " << bbList[i].min[0]
+						  << " " << bbList[i].min[1] << " " << bbList[i].min[2]
+						  << " " << bbList[i].max[0] << " " << bbList[i].max[1]
+						  << " " << bbList[i].max[2] << "\n";
 
-        // Update rocket world matrix
-        World = glm::translate(glm::mat4(1.0f), rocketPosition);
-        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y),
-                             glm::vec3(0.0f, 1.0f, 0.0f));
-        World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x),
-                             glm::vec3(1.0f, 0.0f, 0.0f));
-        World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+				float x =
+					glm::max(bbList[i].min.x,
+							 glm::min(rocketCollider.center.x, bbList[i].max.x));
+				float y =
+					glm::max(bbList[i].min.y,
+							 glm::min(rocketCollider.center.y, bbList[i].max.y));
+				float z =
+					glm::max(bbList[i].min.z,
+							 glm::min(rocketCollider.center.z, bbList[i].max.z));
 
-        // Update view matrix
-        float radius = 0.5f;
-        float camx =
-                sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
-        float camz =
-                cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
-        float camy = -sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) *
-                     radius;
-        View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
-                           rocketPosition, glm::vec3(0, 1, 0));
+				std::cout << "closest point: " << x << ", " << y << ", " << z
+						  << std::endl;
+				std::cout << "distance = "
+						  << glm::sqrt((x - rocketCollider.center.x) *
+										   (x - rocketCollider.center.x) +
+									   (y - rocketCollider.center.y) *
+										   (y - rocketCollider.center.y) +
+									   (z - rocketCollider.center.z) *
+										   (z - rocketCollider.center.z))
+						  << std::endl;
+			}
+			if(checkCollision(rocketCollider, bbList[i])) {
+				isCollision = true;
+				std::cout << i << "\n";
+				break;
+			}
+		}
 
-        // Update mvpMat and map the rocket
-        RocketUbo.mvpMat = Prj * View * World;
+		// Update the rocket's position based on collision or not
+		if(!isCollision)
+			rocketPosition += rocketSpeed * deltaT;
+		else
+			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
 
-        /*
-        homogeneousPoint = glm::vec4(ogRocketMin, 1.0f);
-        homogeneousPoint = World * homogeneousPoint;
-        bbList[0].min = glm::vec3(homogeneousPoint);
-        homogeneousPoint = glm::vec4(ogRocketMax, 1.0f);
-        homogeneousPoint = World * homogeneousPoint;
-        bbList[0].max = glm::vec3(homogeneousPoint);
-        */
-        rocketCollider.center = rocketPosition;
+		// Update rocket world matrix
+		World = glm::translate(glm::mat4(1.0f), rocketPosition);
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 
-        DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
-        DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
-        rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+		// Update view matrix
+		float radius = 0.5f;
+		float camx =
+			sin(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+		float camz =
+			cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
+		float camy =
+			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
+		View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
+						   rocketPosition, glm::vec3(0, 1, 0));
+
+		// Update mvpMat and map the rocket
+		RocketUbo.mvpMat = Prj * View * World;
+
+		/*
+		homogeneousPoint = glm::vec4(ogRocketMin, 1.0f);
+		homogeneousPoint = World * homogeneousPoint;
+		bbList[0].min = glm::vec3(homogeneousPoint);
+		homogeneousPoint = glm::vec4(ogRocketMax, 1.0f);
+		homogeneousPoint = World * homogeneousPoint;
+		bbList[0].max = glm::vec3(homogeneousPoint);
+		*/
+		rocketCollider.center = rocketPosition;
+
+		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
+		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 };
 
