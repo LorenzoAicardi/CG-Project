@@ -178,8 +178,8 @@ protected:
 				  sizeof(glm::vec2), UV}});
 
 		// init pipelines
-		PBlinn.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-					"shaders/LambertBlinnShaderFrag.spv", {&DSL});
+		PBlinn.init(this, &VD, "shaders/CookTorranceShaderVert.spv",
+					"shaders/CookTorranceShaderFrag.spv", {&DSL});
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv", {&DSL});
 
@@ -590,16 +590,18 @@ protected:
 
 		// update global uniforms
 		GlobalUniformBufferObject gubo{};
+		// direct light
 		gubo.lightDir[0].v =
-			glm::vec3(cos(glm::radians(135.0f)), /** cos(cTime * angTurnTimeFact)*/
+			glm::vec3(cos(glm::radians(135.0f) * cos(cTime * angTurnTimeFact)),
 					  sin(glm::radians(135.0f)),
-					  cos(glm::radians(135.0f))); /** sin(cTime * angTurnTimeFact));*/
-		gubo.lightPos[0].v = glm::vec3(7.0f, 0.0f, -2.0f);
+					  cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
+		gubo.lightPos[0].v = glm::vec3(7.0f, 6.0f, -2.0f);
 		gubo.lightColor[0] = glm::vec4(1.0f);
 
+		// point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 3.5f, 4.0f);
-		gubo.lightColor[1] = glm::vec4(1.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 2.0f, 4.0f);
+		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyePos = CamPos;
 
 		// north wall
