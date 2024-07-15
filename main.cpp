@@ -180,34 +180,29 @@ protected:
 					"shaders/LambertBlinnShaderFrag.spv", {&DSL});
 
 		// init models
-		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ, bbList);
-		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
-		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
-		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
-		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
-		MWindow1.init(this, &VD, "models/window.mgcg", MGCG, bbList);
-		MWindow2.init(this, &VD, "models/window.mgcg", MGCG, bbList);
-		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG, bbList);
-		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG, bbList);
-		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG, bbList);
-		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG, bbList);
-		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG, bbList);
-		MDoor.init(this, &VD, "models/door.mgcg", MGCG, bbList);
-		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG, bbList);
-		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG, bbList);
-		MClock.init(this, &VD, "models/clock.mgcg", MGCG, bbList);
-		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, bbList);
-		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, bbList);
-		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG, bbList);
-		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, bbList);
-		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, bbList);
-		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, bbList);
+		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ, vecList);
+		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
+		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
+		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
+		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
+		MWindow1.init(this, &VD, "models/window.mgcg", MGCG, vecList);
+		MWindow2.init(this, &VD, "models/window.mgcg", MGCG, vecList);
+		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG, vecList);
+		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
+		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG, vecList);
+        MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG, vecList);
+        MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG, vecList);
+        MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG, vecList);
+        MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG, vecList);
+        MDoor.init(this, &VD, "models/door.mgcg", MGCG, vecList);
+		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG, vecList);
+		MClock.init(this, &VD, "models/clock.mgcg", MGCG, vecList);
+        MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, vecList);
+        MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, vecList);
+        MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, vecList);
+        MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, vecList);
+		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, vecList);
 		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
-		for(int i = 0; i < bbList.size(); i++)
-			std::cout << "BOUNDING BOX " << i << ": " << bbList[i].min[0] << ","
-					  << bbList[i].min[1] << "," << bbList[i].min[2] << ","
-					  << bbList[i].max[0] << "," << bbList[i].max[1] << ","
-					  << bbList[i].max[2] << " OLLEEEEEEEEEEEEEEEEE \n";
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
@@ -531,7 +526,7 @@ protected:
 		*/
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+	glm::vec3 rocketPosition = glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f);
 	glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
@@ -568,45 +563,41 @@ protected:
 		return distance < sphere.radius;
 	}
 
-    /*
-    void computeBoundingBox(){
-        bbox.min = glm::vec3(std::numeric_limits<float>::max());
-        bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
-        for(int i = 0; i < cntPos; i++) {
-            glm::vec3 pos = {bufferPos[3 * i + 0], bufferPos[3 * i + 1],
-                             bufferPos[3 * i + 2]};
-            glm::vec3 vertex =
-                    glm::vec3(bufferPos[3 * i + 0], bufferPos[3 * i + 1],
-                              bufferPos[3 * i + 2]);
-            bbox.min = glm::min(bbox.min, vertex);
-            bbox.max = glm::max(bbox.max, vertex);
-        }
-        bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
-        bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
-    }
-    */
 
 	void placeObject(int index, bool (&placed)[22], glm::mat4& World,
 					 std::vector<BoundingBox>& bbList) {
-		glm::vec4 homogeneousPoint;
+
 		if(!placed[index]) {
-			std::cout << index << " Pre min: " << bbList[index].min[0] << ", "
-					  << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
-			std::cout << index << " Pre max: " << bbList[index].max[0] << ", "
-					  << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
 
-			homogeneousPoint = glm::vec4(bbList[index].min, 1.0f);
-			glm::vec4 newPoint = World * homogeneousPoint;
-			bbList[index].min = glm::vec3(newPoint);
+            BoundingBox bbox;
+            glm::vec4 homogeneousPoint;
 
-			homogeneousPoint = glm::vec4(bbList[index].max, 1.0f);
-			newPoint = World * homogeneousPoint;
-			bbList[index].max = glm::vec3(newPoint);
+            bbox.min = glm::vec3(std::numeric_limits<float>::max());
+            bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
+            for (int j = 0; j < vecList[index].size(); j++) {
+                glm::vec3 vertex = vecList[index][j];
+                homogeneousPoint = glm::vec4(vertex, 1.0f);
+                glm::vec4 newVertex = World * homogeneousPoint;
+                vertex = glm::vec3(newVertex);
 
-			std::cout << index << " Post min: " << bbList[index].min[0] << ", "
-					  << bbList[index].min[1] << ", " << bbList[index].min[2] << "\n";
-			std::cout << index << " Post max: " << bbList[index].max[0] << ", "
-					  << bbList[index].max[1] << ", " << bbList[index].max[2] << "\n";
+                bbox.min = glm::min(bbox.min, vertex);
+                bbox.max = glm::max(bbox.max, vertex);
+            }
+            bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
+            bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
+            /*
+            if(index == 16 || index == 17) {
+                bbox.max = glm::vec3(0.0f);
+                bbox.min = glm::vec3(0.0f);
+            }*/
+            bbList.push_back(bbox);
+
+            /*
+            std::cout << "Bounding box " << index << " : " <<
+                bbList[index].min.x << ", " << bbList[index].min.y << ", " << bbList[index].min.z << ", " <<
+                bbList[index].max.x << ", " << bbList[index].max.y << ", " << bbList[index].max.z << "\n";
+            */
+
 			placed[index] = true;
 		}
 	}
@@ -645,11 +636,8 @@ protected:
 		if(!isPlaced[0]) {
 			placeObject(0, isPlaced, World, bbList);
 
-			ogRocketMin = bbList[0].min;
-			ogRocketMax = bbList[0].max;
-
 			rocketCollider.center = rocketPosition;
-			rocketCollider.radius = 0.5f;
+			rocketCollider.radius = 0.1f;
 			isPlaced[0] = true;
 		}
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
@@ -914,6 +902,8 @@ protected:
 		} else {
 			// Gravity (gravity constant can be lowered)
 			verticalSpeed += GRAVITY_CONSTANT * deltaT;
+            // Set terminal falling speed
+            verticalSpeed = glm::max(verticalSpeed, 2.0f);
 			rocketPosition.y -= verticalSpeed * deltaT;
 			// Ground
 			if(rocketPosition.y < 10.0f) rocketPosition.y = 10.0f;
@@ -949,53 +939,11 @@ protected:
 
 		// Need to check collisions first
 		bool isCollision = false;
+        int collisionIndex = -1;
 		for(int i = 1; i < bbList.size(); i++) {
-			if(rocketPosition.x > 3.8 && rocketPosition.x < 4.2) {
-				/*
-				std::cout << "Rocket bounding box: " << bbList[0].min[0] << " " << bbList[0].min[1] << " " << bbList[0].min[2] << " " << bbList[0].max[0]
-						<< " " << bbList[0].max[1] << " " << bbList[0].max[2] << "\n";
-				std::cout << "East wall bounding box: " << bbList[i].min[0] << " " << bbList[i].min[1] << " " << bbList[i].min[2] << " " << bbList[i].max[0]
-						<< " " << bbList[i].max[1] << " " << bbList[i].max[2] << "\n";
-
-				std::cout << (bbList[0].min.x <= bbList[i].max.x) <<
-						(bbList[0].max.x >= bbList[i].min.x) <<
-						(bbList[0].min.y <= bbList[i].max.y) <<
-						(bbList[0].max.y >= bbList[i].min.y) <<
-						(bbList[0].min.z <= bbList[i].max.y) <<
-						(bbList[0].max.z >= bbList[i].min.z) << "\n";
-				*/
-
-				std::cout << "Rocket bounding box: "
-						  << "\n\tcenter: " << glm::to_string(rocketCollider.center)
-						  << "\n\tradius: " << rocketCollider.radius << "\n";
-				std::cout << "West wall bounding box: " << bbList[4].min[0]
-						  << " " << bbList[4].min[1] << " " << bbList[4].min[2]
-						  << " " << bbList[4].max[0] << " " << bbList[4].max[1]
-						  << " " << bbList[4].max[2] << "\n";
-
-				float x =
-					glm::max(bbList[4].min.x,
-							 glm::min(rocketCollider.center.x, bbList[4].max.x));
-				float y =
-					glm::max(bbList[4].min.y,
-							 glm::min(rocketCollider.center.y, bbList[4].max.y));
-				float z =
-					glm::max(bbList[4].min.z,
-							 glm::min(rocketCollider.center.z, bbList[4].max.z));
-
-				std::cout << "closest point: " << x << ", " << y << ", " << z
-						  << std::endl;
-				std::cout << "distance = "
-						  << glm::sqrt((x - rocketCollider.center.x) *
-										   (x - rocketCollider.center.x) +
-									   (y - rocketCollider.center.y) *
-										   (y - rocketCollider.center.y) +
-									   (z - rocketCollider.center.z) *
-										   (z - rocketCollider.center.z))
-						  << std::endl;
-			}
 			if(checkCollision(rocketCollider, bbList[i])) {
 				isCollision = true;
+                collisionIndex = i;
 				std::cout << i << "\n";
 				break;
 			}
@@ -1004,8 +952,23 @@ protected:
 		// Update the rocket's position based on collision or not
 		if(!isCollision)
 			rocketPosition += rocketSpeed * deltaT;
-		else
-			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+		else {
+            /*
+            glm::vec3 closestPoint;
+            closestPoint.x = glm::max(rocketCollider.center.x, glm::min(bbList[collisionIndex].max.x, bbList[collisionIndex].min.x));
+            closestPoint.y = glm::max(rocketCollider.center.y, glm::min(bbList[collisionIndex].max.y, bbList[collisionIndex].min.y));
+            closestPoint.z = glm::max(rocketCollider.center.z, glm::min(bbList[collisionIndex].max.z, bbList[collisionIndex].min.z));
+
+            glm::vec3 difference = closestPoint - rocketCollider.center;
+            float distanceSquared = glm::dot(difference, difference);
+            float distance = glm::sqrt(distanceSquared);
+
+            if (distance < rocketCollider.radius) {
+                glm::vec3 penetrationVector = difference * ((rocketCollider.radius - distance) / distance);
+                rocketPosition -= penetrationVector;
+            }*/
+            rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+        }
 
 		// Update rocket world matrix
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
@@ -1029,14 +992,6 @@ protected:
 		// Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
 
-		/*
-		homogeneousPoint = glm::vec4(ogRocketMin, 1.0f);
-		homogeneousPoint = World * homogeneousPoint;
-		bbList[0].min = glm::vec3(homogeneousPoint);
-		homogeneousPoint = glm::vec4(ogRocketMax, 1.0f);
-		homogeneousPoint = World * homogeneousPoint;
-		bbList[0].max = glm::vec3(homogeneousPoint);
-		*/
 		rocketCollider.center = rocketPosition;
 
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
