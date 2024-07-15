@@ -566,18 +566,25 @@ protected:
 								   (z - sphere.center.z) * (z - sphere.center.z));
 
 		return distance < sphere.radius;
-
-		/*
-		return (
-				box1.min.x <= box2.max.x &&
-				box1.max.x >= box2.min.x &&
-				box1.min.y <= box2.max.y &&
-				box1.max.y >= box2.min.y &&
-				box1.min.z <= box2.max.y &&
-				box1.max.z >= box2.min.z
-		);
-		 */
 	}
+
+    /*
+    void computeBoundingBox(){
+        bbox.min = glm::vec3(std::numeric_limits<float>::max());
+        bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
+        for(int i = 0; i < cntPos; i++) {
+            glm::vec3 pos = {bufferPos[3 * i + 0], bufferPos[3 * i + 1],
+                             bufferPos[3 * i + 2]};
+            glm::vec3 vertex =
+                    glm::vec3(bufferPos[3 * i + 0], bufferPos[3 * i + 1],
+                              bufferPos[3 * i + 2]);
+            bbox.min = glm::min(bbox.min, vertex);
+            bbox.max = glm::max(bbox.max, vertex);
+        }
+        bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
+        bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
+    }
+    */
 
 	void placeObject(int index, bool (&placed)[22], glm::mat4& World,
 					 std::vector<BoundingBox>& bbList) {
@@ -943,7 +950,7 @@ protected:
 		// Need to check collisions first
 		bool isCollision = false;
 		for(int i = 1; i < bbList.size(); i++) {
-			if(rocketPosition.x > 6.8 && rocketPosition.x < 7.2) {
+			if(rocketPosition.x > 3.8 && rocketPosition.x < 4.2) {
 				/*
 				std::cout << "Rocket bounding box: " << bbList[0].min[0] << " " << bbList[0].min[1] << " " << bbList[0].min[2] << " " << bbList[0].max[0]
 						<< " " << bbList[0].max[1] << " " << bbList[0].max[2] << "\n";
@@ -961,20 +968,20 @@ protected:
 				std::cout << "Rocket bounding box: "
 						  << "\n\tcenter: " << glm::to_string(rocketCollider.center)
 						  << "\n\tradius: " << rocketCollider.radius << "\n";
-				std::cout << "West wall bounding box: " << bbList[i].min[0]
-						  << " " << bbList[i].min[1] << " " << bbList[i].min[2]
-						  << " " << bbList[i].max[0] << " " << bbList[i].max[1]
-						  << " " << bbList[i].max[2] << "\n";
+				std::cout << "West wall bounding box: " << bbList[4].min[0]
+						  << " " << bbList[4].min[1] << " " << bbList[4].min[2]
+						  << " " << bbList[4].max[0] << " " << bbList[4].max[1]
+						  << " " << bbList[4].max[2] << "\n";
 
 				float x =
-					glm::max(bbList[i].min.x,
-							 glm::min(rocketCollider.center.x, bbList[i].max.x));
+					glm::max(bbList[4].min.x,
+							 glm::min(rocketCollider.center.x, bbList[4].max.x));
 				float y =
-					glm::max(bbList[i].min.y,
-							 glm::min(rocketCollider.center.y, bbList[i].max.y));
+					glm::max(bbList[4].min.y,
+							 glm::min(rocketCollider.center.y, bbList[4].max.y));
 				float z =
-					glm::max(bbList[i].min.z,
-							 glm::min(rocketCollider.center.z, bbList[i].max.z));
+					glm::max(bbList[4].min.z,
+							 glm::min(rocketCollider.center.z, bbList[4].max.z));
 
 				std::cout << "closest point: " << x << ", " << y << ", " << z
 						  << std::endl;

@@ -2364,7 +2364,6 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 	}
 
 
-	// std::cout << bbList[0].min << "\n";
 }
 
 template<class Vert>
