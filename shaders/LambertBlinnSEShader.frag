@@ -57,6 +57,9 @@ void main() {
     vec3 albedo = texture(tex, fragUV).rgb;
     vec3 L = vec3(0);// solution of rendering equation
 
+    // self-emission
+    L += 0.7f * albedo;
+
     // lights
     vec3 lightDir = directLightDir(fragPos, 0);
     vec3 lightColor = directLightColor(fragPos, 0);
