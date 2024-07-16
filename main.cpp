@@ -540,7 +540,6 @@ protected:
 	glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	const float ROT_SPEED = 50.0f;
 	const float MOVE_SPEED = 0.5f;
 	glm::vec3 CamPos = glm::vec3(0.0, 0.1, 5.0);
 	glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
@@ -550,12 +549,12 @@ protected:
 	float GRAVITY_CONSTANT = 2.0f;
 
 	bool isPlaced[22] = {0};
-	glm::vec3 ogRocketMin;
-	glm::vec3 ogRocketMax;
 
 	SphereCollider rocketCollider;
     RocketState rocketState;
     glm::vec3 restingPosition;
+
+    // bool isCollected[2] = {0};
 
 	// Helper function for checking collisions
 	bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
@@ -593,8 +592,9 @@ protected:
             }
             bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
             bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
-
             index < 19 ? bbox.cType = OBJECT : bbox.cType = COLLECTIBLE;
+
+            bbox.display = true;
 
             bbList.push_back(bbox);
 
@@ -841,22 +841,32 @@ protected:
 		DSRoofLamp.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin sack
-		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
-		CoinSackUbo.mvpMat = ViewPrj * World;
-		placeObject(20, isPlaced, World, bbList);
-		DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
-		DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+        if(bbList[20].display) {
+            World = glm::translate(glm::mat4(1),
+                                   glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f));
+        } else {
+            World = glm::translate(glm::mat4(1),
+                                   glm::vec3(1000.0f));
+        }
+        World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+        CoinSackUbo.mvpMat = ViewPrj * World;
+        placeObject(20, isPlaced, World, bbList);
+        DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
+        DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin stack
-		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 1.0f, 2.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
-		CoinStackUbo.mvpMat = ViewPrj * World;
-		placeObject(21, isPlaced, World, bbList);
-		DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
-		DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+        if(bbList[21].display) {
+            World = glm::translate(glm::mat4(1),
+                                   glm::vec3(0.0f, 1.0f, 2.0f) + glm::vec3(10.0f));
+        } else {
+            World = glm::translate(glm::mat4(1),
+                                   glm::vec3(1000.0f));
+        }
+        World *= glm::scale(glm::mat4(1), glm::vec3(0.007f, 0.007f, 0.007f));
+        CoinStackUbo.mvpMat = ViewPrj * World;
+        placeObject(21, isPlaced, World, bbList);
+        DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
+        DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		/*
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 6.0f));
@@ -940,6 +950,7 @@ protected:
                         break;
                     }
                     case COLLECTIBLE:
+                        bbList[collisionIndex].display = false;
                         break;
                 }
             }
@@ -952,7 +963,7 @@ protected:
                 rocketPosition += rocketSpeed * deltaT;
             }
 
-            if(!isCollision) { // Move as normal
+            if(!isCollision) {
                 if (rocketState == RESTING) {
                     rocketPosition = restingPosition;
                 } else {
@@ -988,8 +999,7 @@ protected:
 
                         if (rocketPosition.y <= bbList[collisionIndex].max.y + rocketCollider.radius && // If the collision is coming from above
                             !(std::abs(normal.x) > 0.5f || std::abs(normal.z) > 0.5f) && // Not from the side
-                            normal.y != -1.0f) {  // Not from below
-                            std::cout << "Collision from above" << std::endl;
+                            normal.y != -1.0f){  // Not from below
                             rocketSpeed = glm::vec3(0.0f);
                             rocketState = RESTING;
                             restingPosition.x = rocketPosition.x;
@@ -1006,6 +1016,7 @@ protected:
                             speed = glm::max(speed, 0.0f);
                             rocketSpeed = glm::normalize(rocketSpeed) * speed;
                         }
+                        bbList[collisionIndex].display = false;
                         break;
                     }
                 }

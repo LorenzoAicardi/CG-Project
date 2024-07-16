@@ -75,6 +75,7 @@ struct BoundingBox {
 	glm::vec3 min;
 	glm::vec3 max;
     CollisionType cType;
+    bool display;
 };
 
 
