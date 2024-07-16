@@ -65,9 +65,16 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+
+enum CollisionType {
+    COLLECTIBLE,
+    OBJECT
+};
+
 struct BoundingBox {
 	glm::vec3 min;
 	glm::vec3 max;
+    CollisionType cType;
 };
 
 

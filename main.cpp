@@ -594,6 +594,8 @@ protected:
             bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
             bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
 
+            index < 19 ? bbox.cType = OBJECT : bbox.cType = COLLECTIBLE;
+
             bbList.push_back(bbox);
 
 			placed[index] = true;
@@ -916,22 +918,30 @@ protected:
             rocketPosition += rocketSpeed * deltaT;
 
             if(isCollision) {
-                // Compute the closest point on the AABB to the sphere center
-                glm::vec3 closestPoint = glm::clamp(rocketPosition, bbList[collisionIndex].min, bbList[collisionIndex].max);
+                switch (bbList[collisionIndex].cType) {
+                    case OBJECT: {
+                        // Compute the closest point on the AABB to the sphere center
+                        glm::vec3 closestPoint = glm::clamp(rocketPosition, bbList[collisionIndex].min,
+                                                            bbList[collisionIndex].max);
 
-                // Calculate the normal of the collision surface
-                glm::vec3 difference = rocketPosition - closestPoint;
-                float distance = glm::length(difference);
+                        // Calculate the normal of the collision surface
+                        glm::vec3 difference = rocketPosition - closestPoint;
+                        float distance = glm::length(difference);
 
-                glm::vec3 normal = glm::normalize(difference);
+                        glm::vec3 normal = glm::normalize(difference);
 
-                // Move the sphere out of collision along the normal
-                rocketPosition = closestPoint + normal * rocketCollider.radius;
-                // Adjust the sphere's velocity to slide along the AABB surface
-                float dotProduct = glm::dot(rocketSpeed, normal);
-                glm::vec3 correction = normal * dotProduct;
-                rocketSpeed -= correction;
+                        // Move the sphere out of collision along the normal
+                        rocketPosition = closestPoint + normal * rocketCollider.radius;
+                        // Adjust the sphere's velocity to slide along the AABB surface
+                        float dotProduct = glm::dot(rocketSpeed, normal);
+                        glm::vec3 correction = normal * dotProduct;
+                        rocketSpeed -= correction;
 
+                        break;
+                    }
+                    case COLLECTIBLE:
+                        break;
+                }
             }
 		} else {
             // Gravity (gravity constant can be lowered)
@@ -956,33 +966,50 @@ protected:
                     }
                 }
             } else {
-                // Compute the closest point on the AABB to the sphere center
-                glm::vec3 closestPoint = glm::clamp(rocketPosition, bbList[collisionIndex].min, bbList[collisionIndex].max);
+                switch (bbList[collisionIndex].cType){
+                    case OBJECT:{
+                        std::cout << bbList[collisionIndex].cType << std::endl;
+                        // Compute the closest point on the AABB to the sphere center
+                        glm::vec3 closestPoint = glm::clamp(rocketPosition, bbList[collisionIndex].min, bbList[collisionIndex].max);
 
-                // Calculate the normal of the collision surface
-                glm::vec3 difference = rocketPosition - closestPoint;
-                float distance = glm::length(difference);
+                        // Calculate the normal of the collision surface
+                        glm::vec3 difference = rocketPosition - closestPoint;
+                        float distance = glm::length(difference);
 
-                glm::vec3 normal = glm::normalize(difference);
+                        glm::vec3 normal = glm::normalize(difference);
 
-                // Move the sphere out of collision along the normal
-                rocketPosition = closestPoint + normal * rocketCollider.radius;
+                        // Move the sphere out of collision along the normal
+                        rocketPosition = closestPoint + normal * rocketCollider.radius;
 
-                // Adjust the sphere's velocity to slide along the AABB surface
-                float dotProduct = glm::dot(rocketSpeed, normal);
-                glm::vec3 correction = normal * dotProduct;
-                rocketSpeed -= correction;
+                        // Adjust the sphere's velocity to slide along the AABB surface
+                        float dotProduct = glm::dot(rocketSpeed, normal);
+                        glm::vec3 correction = normal * dotProduct;
+                        rocketSpeed -= correction;
 
-                if (rocketPosition.y <= bbList[collisionIndex].max.y + rocketCollider.radius && // If the collision is coming from above
-                !(std::abs(normal.x) > 0.5f || std::abs(normal.z) > 0.5f) && // Not from the side
-                    normal.y != -1.0f) {  // Not from below
-                    std::cout << "Collision from above" << std::endl;
-                    rocketSpeed = glm::vec3(0.0f);
-                    rocketState = RESTING;
-                    restingPosition.x = rocketPosition.x;
-                    restingPosition.y = bbList[collisionIndex].max.y + rocketCollider.radius + 0.01f;
-                    restingPosition.z = rocketPosition.z;
+                        if (rocketPosition.y <= bbList[collisionIndex].max.y + rocketCollider.radius && // If the collision is coming from above
+                            !(std::abs(normal.x) > 0.5f || std::abs(normal.z) > 0.5f) && // Not from the side
+                            normal.y != -1.0f) {  // Not from below
+                            std::cout << "Collision from above" << std::endl;
+                            rocketSpeed = glm::vec3(0.0f);
+                            rocketState = RESTING;
+                            restingPosition.x = rocketPosition.x;
+                            restingPosition.y = bbList[collisionIndex].max.y + rocketCollider.radius + 0.01f;
+                            restingPosition.z = rocketPosition.z;
+                        }
+                    }
+                    case COLLECTIBLE: {
+                        rocketPosition.y -= verticalSpeed * deltaT;
+                        // Deceleration towards minimum speed (0)
+                        if (glm::length(rocketSpeed) > 0.0f) {
+                            float speed = glm::length(rocketSpeed);
+                            speed -= MOVE_SPEED * deltaT;
+                            speed = glm::max(speed, 0.0f);
+                            rocketSpeed = glm::normalize(rocketSpeed) * speed;
+                        }
+                        break;
+                    }
                 }
+
             }
 
 		}
