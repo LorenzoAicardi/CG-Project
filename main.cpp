@@ -662,7 +662,7 @@ protected:
 		// north wall
 		World = glm::translate(glm::mat4(1),
 							   glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.5f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		placeObject(1, isPlaced, World, bbList);
 		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
@@ -673,7 +673,7 @@ protected:
 							   glm::vec3(6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.5f, -1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
 		placeObject(2, isPlaced, World, bbList);
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
@@ -682,7 +682,7 @@ protected:
 		// south wall
 		World = glm::translate(glm::mat4(1),
 							   glm::vec3(0.0f, 0.0f, 8.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.0f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.5f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		placeObject(3, isPlaced, World, bbList);
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
@@ -693,7 +693,7 @@ protected:
 							   glm::vec3(-6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.0f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.5f, -1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
 		placeObject(4, isPlaced, World, bbList);
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
