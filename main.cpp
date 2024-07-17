@@ -41,9 +41,6 @@ protected:
 
 	SceneManager<Vertex> SC;
 
-	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL;
-
 	// Vertex formats
 	VertexDescriptor VD;
 
@@ -91,10 +88,11 @@ protected:
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() override {
 		// init descriptor layouts [what will be passed to the shaders]
-		DSL.init(this,
-				 {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-				  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
+		// DSL.init(this,
+		// 		 {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+		// 		  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+		// 		  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
+		SC.initLayouts(this, "models/scene.json");
 
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
@@ -107,10 +105,11 @@ protected:
 
 		// init pipelines
 		PBlinn.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-					"shaders/LambertBlinnShaderFrag.spv", {&DSL});
+					"shaders/LambertBlinnShaderFrag.spv",
+					{SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 
 		// init scene (models & textures)
-		SC.init(this, &VD, DSL, PBlinn, "models/scene.json");
+		SC.init(this, &VD, PBlinn, "models/scene.json");
 
 		// init local variables
 	}
@@ -123,7 +122,7 @@ protected:
 			 {1, TEXTURE, 0, SC.T[0]},
 			 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
-		SC.pipelinesAndDescriptorSetsInit(DSL, bindings);
+		SC.pipelinesAndDescriptorSetsInit(bindings);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -143,9 +142,6 @@ protected:
 	void localCleanup() override {
 		// cleanup textures & models
 		SC.localCleanup();
-
-		// Cleanup descriptor set layouts
-		DSL.cleanup();
 
 		// Destroys the pipelines
 		PBlinn.destroy();

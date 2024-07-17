@@ -1,4 +1,23 @@
 {
+  "layouts": [
+    {
+      "name": "DSLGlobal",
+      "bindings": [
+        {
+          "type": "ubo",
+          "stage": "vert"
+        },
+        {
+          "type": "img",
+          "stage": "frag"
+        },
+        {
+          "type": "ubo",
+          "stage": "frag"
+        }
+      ]
+    }
+  ],
   "models": [
     {
       "id": "rkt",
@@ -87,6 +106,7 @@
       "id": "walln",
       "model": "wall",
       "texture": "tf",
+      "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",
@@ -110,6 +130,7 @@
       "id": "walle",
       "model": "wall",
       "texture": "tf",
+      "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",
@@ -141,6 +162,7 @@
       "id": "walls",
       "model": "wall",
       "texture": "tf",
+      "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",
@@ -164,6 +186,7 @@
       "id": "wallw",
       "model": "wall",
       "texture": "tf",
+      "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",
@@ -195,6 +218,7 @@
       "id": "floor",
       "model": "floor",
       "texture": "tf",
+      "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",

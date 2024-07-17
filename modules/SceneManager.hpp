@@ -8,6 +8,7 @@ typedef struct {
 	std::string *id;
 	int Mid;
 	int Tid;
+	int DSLid;
 	glm::mat4 Wm;
 } Instance;
 
@@ -20,9 +21,9 @@ public:
 	 */
 	static glm::mat4 computeWorld(nlohmann::json transforms) {
 		glm::mat4 Wm = glm::mat4(1.0f);
-		int nTrans = transforms.size();
+		int numTrans = transforms.size();
 
-		for(int i = 0; i < nTrans; i++) {
+		for(int i = 0; i < numTrans; i++) {
 			nlohmann::json trans = transforms[i];
 
 			if(trans["type"] == "translate") {
@@ -31,9 +32,7 @@ public:
 				float tz = trans["vec"][2];
 
 				Wm *= glm::translate(glm::mat4(1.0f), glm::vec3(tx, ty, tz));
-			}
-
-			if(trans["type"] == "rotate") {
+			} else if(trans["type"] == "rotate") {
 				float rx = trans["vec"][0];
 				float ry = trans["vec"][1];
 				float rz = trans["vec"][2];
@@ -47,9 +46,7 @@ public:
 				if(rz != 0.0f)
 					Wm *= glm::rotate(glm::mat4(1.0f), glm::radians(rz),
 									  glm::vec3(0.0f, 0.0f, 1.0f));
-			}
-
-			if(trans["type"] == "scale") {
+			} else if(trans["type"] == "scale") {
 				float sx = trans["vec"][0];
 				float sy = trans["vec"][1];
 				float sz = trans["vec"][2];
@@ -59,6 +56,36 @@ public:
 		}
 
 		return Wm;
+	}
+};
+
+class LayoutInterpreter {
+public:
+	static std::vector<DescriptorSetLayoutBinding> getBindings(nlohmann::json bindings) {
+		int numBindings = bindings.size();
+		std::vector<DescriptorSetLayoutBinding> res(numBindings);
+
+		for(int i = 0; i < numBindings; i++) {
+			nlohmann::json binding = bindings[i];
+
+			res[i].binding = i;
+
+			if(binding["type"] == "ubo") {
+				res[i].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			} else if(binding["type"] == "img") {
+				res[i].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			}
+
+			if(binding["stage"] == "vert") {
+				res[i].flags = VK_SHADER_STAGE_VERTEX_BIT;
+			} else if(binding["stage"] == "frag") {
+				res[i].flags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			} else {
+				res[i].flags = VK_SHADER_STAGE_ALL_GRAPHICS;
+			}
+		}
+
+		return res;
 	}
 };
 
@@ -86,6 +113,11 @@ public:
 	VertexDescriptor *VD;
 
 	BaseProject *BP;
+
+	// Layouts
+	int LayoutCount = 0;
+	DescriptorSetLayout **DSL;
+	std::unordered_map<std::string, int> LayoutIds;
 
 	// Models
 	int ModelCount = 0;
@@ -127,8 +159,7 @@ public:
 		}
 	}
 
-	void init(BaseProject *_BP, VertexDescriptor *VD, DescriptorSetLayout &DSL,
-			  Pipeline &P, std::string file) {
+	void initLayouts(BaseProject *_BP, std::string file) {
 		BP = _BP;
 
 		nlohmann::json js;
@@ -138,6 +169,40 @@ public:
 			std::cout << "Error! Scene file not found!";
 			exit(-1);
 		}
+
+		try {
+			ifs >> js;
+			ifs.close();
+
+			nlohmann::json ly = js["layouts"];
+			LayoutCount = ly.size();
+			std::cout << "Layout count: " << LayoutCount << "\n";
+			DSL = (DescriptorSetLayout **)calloc(LayoutCount,
+												 sizeof(DescriptorSetLayout *));
+			for(int k = 0; k < LayoutCount; k++) {
+				LayoutIds[ly[k]["name"]] = k;
+				DSL[k] = new DescriptorSetLayout();
+
+				auto bindings =
+					LayoutInterpreter::getBindings(ly[k]["bindings"]);
+				DSL[k]->init(BP, bindings);
+			}
+		} catch(const nlohmann::json::exception &e) {
+			std::cout << e.what() << '\n';
+		}
+	}
+
+	void init(BaseProject *_BP, VertexDescriptor *VD, Pipeline &P, std::string file) {
+		BP = _BP;
+
+		nlohmann::json js;
+		std::ifstream ifs(file);
+
+		if(!ifs.is_open()) {
+			std::cout << "Error! Scene file not found!";
+			exit(-1);
+		}
+
 		try {
 			std::cout << "Parsing JSON\n";
 			ifs >> js;
@@ -191,9 +256,10 @@ public:
 				I[k].id = new std::string(is[k]["id"]);
 				I[k].Mid = MeshIds[is[k]["model"]];
 				I[k].Tid = TextureIds[is[k]["texture"]];
+				I[k].DSLid = LayoutIds[is[k]["layout"]];
 
-				nlohmann::json trans = is[k]["transforms"];
-				I[k].Wm = TransformInterpreter::computeWorld(trans);
+				I[k].Wm =
+					TransformInterpreter::computeWorld(is[k]["transforms"]);
 			}
 		} catch(const nlohmann::json::exception &e) {
 			std::cout << e.what() << '\n';
@@ -201,11 +267,10 @@ public:
 	}
 
 
-	void pipelinesAndDescriptorSetsInit(DescriptorSetLayout &DSL,
-										std::vector<DescriptorSetElement> dsInst) {
+	void pipelinesAndDescriptorSetsInit(std::vector<DescriptorSetElement> dsInst) {
 		for(int i = 0; i < InstanceCount; i++) {
 			DS[i] = new DescriptorSet();
-			DS[i]->init(BP, &DSL, dsInst);
+			DS[i]->init(BP, DSL[I[i].DSLid], dsInst);
 		}
 	}
 
@@ -230,6 +295,13 @@ public:
 			delete M[i];
 		}
 		free(M);
+
+		// Cleanup layouts
+		for(int i = 0; i < LayoutCount; i++) {
+			DSL[i]->cleanup();
+			delete DSL[i];
+		}
+		free(DSL);
 
 		free(DS);
 		for(int i = 0; i < InstanceCount; i++) {
