@@ -96,11 +96,7 @@ struct ResourceAmount {
 	int textureInPool;
 	int dsInPool;
 
-	ResourceAmount() {
-		uboInPool = 0;
-		textureInPool = 0;
-		dsInPool = 0;
-	}
+	ResourceAmount() : uboInPool(0), textureInPool(0), dsInPool(0) {}
 };
 
 /**
@@ -265,7 +261,6 @@ public:
 			std::cout << e.what() << '\n';
 		}
 	}
-
 
 	void pipelinesAndDescriptorSetsInit(std::vector<DescriptorSetElement> dsInst) {
 		for(int i = 0; i < InstanceCount; i++) {
