@@ -680,7 +680,7 @@ protected:
 		// north wall
 		World = glm::translate(glm::mat4(1),
 							   glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.5f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		placeObject(1, isPlaced, World, bbList);
 		DSWallN.map(currentImage, &WallNUbo, sizeof(WallNUbo), 0);
@@ -691,7 +691,7 @@ protected:
 							   glm::vec3(6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.5f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
 		WallEUbo.mvpMat = ViewPrj * World;
 		placeObject(2, isPlaced, World, bbList);
 		DSWallE.map(currentImage, &WallEUbo, sizeof(WallEUbo), 0);
@@ -700,7 +700,7 @@ protected:
 		// south wall
 		World = glm::translate(glm::mat4(1),
 							   glm::vec3(0.0f, 0.0f, 8.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 1.5f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		placeObject(3, isPlaced, World, bbList);
 		DSWallS.map(currentImage, &WallSUbo, sizeof(WallSUbo), 0);
@@ -711,7 +711,7 @@ protected:
 							   glm::vec3(-6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(-2.0f, 1.5f, -1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
 		WallWUbo.mvpMat = ViewPrj * World;
 		placeObject(4, isPlaced, World, bbList);
 		DSWallW.map(currentImage, &WallWUbo, sizeof(WallWUbo), 0);
@@ -739,7 +739,7 @@ protected:
 		// floor
 		World = glm::translate(glm::mat4(1),
 							   glm::vec3(0.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 1.0f, 2.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(4.0f, 1.0f, 3.0f));
 		FloorUbo.mvpMat = ViewPrj * World;
 		placeObject(7, isPlaced, World, bbList);
 		DSFloor.map(currentImage, &FloorUbo, sizeof(FloorUbo), 0);
@@ -750,7 +750,7 @@ protected:
 							   glm::vec3(0.0f, 4.0f, 0.0f) + glm::vec3(10.0f));
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 2.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(5.0f, 2.0f, 4.0f));
 		RoofUbo.mvpMat = ViewPrj * World;
 		placeObject(8, isPlaced, World, bbList);
 		DSRoof.map(currentImage, &RoofUbo, sizeof(RoofUbo), 0);
@@ -997,7 +997,6 @@ protected:
             } else {
                 switch (bbList[collisionIndex].cType){
                     case OBJECT:{
-                        std::cout << bbList[collisionIndex].cType << std::endl;
                         // Compute the closest point on the AABB to the sphere center
                         glm::vec3 closestPoint = glm::clamp(rocketPosition, bbList[collisionIndex].min, bbList[collisionIndex].max);
 
@@ -1006,7 +1005,6 @@ protected:
                         float distance = glm::length(difference);
 
                         glm::vec3 normal = glm::normalize(difference);
-
                         // Move the sphere out of collision along the normal
                         rocketPosition = closestPoint + normal * rocketCollider.radius;
 
@@ -1018,6 +1016,7 @@ protected:
                         if (rocketPosition.y <= bbList[collisionIndex].max.y + rocketCollider.radius && // If the collision is coming from above
                             !(std::abs(normal.x) > 0.5f || std::abs(normal.z) > 0.5f) && // Not from the side
                             normal.y != -1.0f){  // Not from below
+                            std::cout << normal.x << ", " << normal.y << ", " << normal.z << std::endl;
                             rocketSpeed = glm::vec3(0.0f);
                             rocketState = RESTING;
                             restingPosition.x = rocketPosition.x;
