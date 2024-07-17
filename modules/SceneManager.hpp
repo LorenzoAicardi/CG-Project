@@ -1,5 +1,3 @@
-
-
 #include "Starter.hpp"
 #include <json.hpp>
 #include <glm/glm.hpp>
@@ -20,7 +18,7 @@ public:
 	 * @param transforms array of transformation objects (assumed to be valid)
 	 * @return the world matrix
 	 */
-	static glm::mat4 computeWm(nlohmann::json transforms) {
+	static glm::mat4 computeWorld(nlohmann::json transforms) {
 		glm::mat4 Wm = glm::mat4(1.0f);
 		int nTrans = transforms.size();
 
@@ -89,9 +87,7 @@ public:
 
 	BaseProject *BP;
 
-	// Models, textures and Descriptors (values assigned to the uniforms)
-	// Please note that Model objects depends on the corresponding vertex
-	// structure Models
+	// Models
 	int ModelCount = 0;
 	Model<Vert> **M;
 	std::unordered_map<std::string, int> MeshIds;
@@ -149,7 +145,7 @@ public:
 			std::cout << "\n\n\nScene contains " << js.size()
 					  << " definitions sections\n\n\n";
 
-			// MODELS
+			// Models
 			nlohmann::json ms = js["models"];
 			ModelCount = ms.size();
 			std::cout << "Models count: " << ModelCount << "\n";
@@ -165,7 +161,7 @@ public:
 						   vecList);
 			}
 
-			// TEXTURES
+			// Textures
 			nlohmann::json ts = js["textures"];
 			TextureCount = ts.size();
 			std::cout << "Textures count: " << TextureCount << "\n";
@@ -178,7 +174,7 @@ public:
 				T[k]->init(BP, ts[k]["texture"].template get<std::string>().c_str());
 			}
 
-			// INSTANCES TextureCount
+			// Instances
 			nlohmann::json is = js["instances"];
 			InstanceCount = is.size();
 			std::cout << "Instances count: " << InstanceCount << "\n";
@@ -190,20 +186,14 @@ public:
 						  << "(" << MeshIds[is[k]["model"]] << "), "
 						  << is[k]["texture"] << "("
 						  << TextureIds[is[k]["texture"]] << ")\n";
+
 				InstanceIds[is[k]["id"]] = k;
 				I[k].id = new std::string(is[k]["id"]);
 				I[k].Mid = MeshIds[is[k]["model"]];
 				I[k].Tid = TextureIds[is[k]["texture"]];
-				// nlohmann::json TMjson = is[k]["transform"];
-				// float TMj[16];
-				// for(int l = 0; l < 16; l++) {
-				// 	TMj[l] = TMjson[l];
-				// }
-				// I[k].Wm = glm::mat4(TMj[0], TMj[4], TMj[8], TMj[12], TMj[1], TMj[5],
-				// 					TMj[9], TMj[13], TMj[2], TMj[6], TMj[10],
-				// 					TMj[14], TMj[3], TMj[7], TMj[11], TMj[15]);
+
 				nlohmann::json trans = is[k]["transforms"];
-				I[k].Wm = TransformInterpreter::computeWm(trans);
+				I[k].Wm = TransformInterpreter::computeWorld(trans);
 			}
 		} catch(const nlohmann::json::exception &e) {
 			std::cout << e.what() << '\n';
