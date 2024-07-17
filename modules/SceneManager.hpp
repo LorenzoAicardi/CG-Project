@@ -81,6 +81,7 @@ public:
 	int ModelCount = 0;
 	Model<Vert> **M;
 	std::unordered_map<std::string, int> MeshIds;
+	std::vector<std::vector<glm::vec3>> vecList;
 
 	// Textures
 	int TextureCount = 0;
@@ -122,8 +123,9 @@ public:
 				std::string MT = ms[k]["format"].template get<std::string>();
 				M[k] = new Model<Vert>();
 
-				M[k]->init(BP, VD, ms[k]["model"],
-						   (MT[0] == 'O') ? OBJ : ((MT[0] == 'G') ? GLTF : MGCG));
+				M[k]->init(BP, VD, ms[k]["model"].template get<std::string>(),
+						   (MT[0] == 'O') ? OBJ : ((MT[0] == 'G') ? GLTF : MGCG),
+						   vecList);
 			}
 
 			// TEXTURES
@@ -165,8 +167,6 @@ public:
 				// 					TMj[14], TMj[3], TMj[7], TMj[11], TMj[15]);
 				nlohmann::json trans = is[k]["transforms"];
 				I[k].Wm = TransformInterpreter::computeWm(trans);
-				std::cout << "Wm of object " << I[k].id << " is\n"
-						  << glm::to_string(I[k].Wm) << std::endl;
 			}
 		} catch(const nlohmann::json::exception &e) {
 			std::cout << e.what() << '\n';
@@ -174,15 +174,13 @@ public:
 	}
 
 
-	// void pipelinesAndDescriptorSetsInit(DescriptorSetLayout &DSL) {
-	// 	for(int i = 0; i < InstanceCount; i++) {
-	// 		DS[i] = new DescriptorSet();
-	// 		DS[i]->init(BP, &DSL,
-	// 					{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-	// 					 {1, TEXTURE, 0, T[I[i].Tid]},
-	// 					 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-	// 	}
-	// }
+	void pipelinesAndDescriptorSetsInit(DescriptorSetLayout &DSL,
+										std::vector<DescriptorSetElement> dsInst) {
+		for(int i = 0; i < InstanceCount; i++) {
+			DS[i] = new DescriptorSet();
+			DS[i]->init(BP, &DSL, dsInst);
+		}
+	}
 
 	void pipelinesAndDescriptorSetsCleanup() {
 		for(int i = 0; i < InstanceCount; i++) {
