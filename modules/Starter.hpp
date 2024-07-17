@@ -327,8 +327,6 @@ struct DescriptorSet {
 	void map(int currentImage, void *src, int size, int slot);
 };
 
-
-// MAIN !
 class BaseProject {
 	friend class VertexDescriptor;
 	template<class Vert>
