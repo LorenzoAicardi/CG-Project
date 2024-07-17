@@ -141,9 +141,13 @@ protected:
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 70;
-		texturesInPool = 70;
-		setsInPool = 70;
+		SC.countResources("models/scene.json");
+		std::cout << "#ubo: " << SC.resCtr.uboInPool
+				  << ", #tex: " << SC.resCtr.textureInPool
+				  << ", #ds: " << SC.resCtr.dsInPool << std::endl;
+		uniformBlocksInPool = SC.resCtr.uboInPool;
+		texturesInPool = SC.resCtr.textureInPool;
+		setsInPool = SC.resCtr.dsInPool;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}

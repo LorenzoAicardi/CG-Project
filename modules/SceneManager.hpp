@@ -64,6 +64,20 @@ public:
 	}
 };
 
+/// number of buffer objects, textures and descriptors
+/// to allocate
+struct ResourceAmount {
+	int uboInPool;
+	int textureInPool;
+	int dsInPool;
+
+	ResourceAmount() {
+		uboInPool = 0;
+		textureInPool = 0;
+		dsInPool = 0;
+	}
+};
+
 /**
  * Handle scene initialization and
  * object placement
@@ -93,6 +107,29 @@ public:
 	DescriptorSet **DS;
 	Instance *I;
 	std::unordered_map<std::string, int> InstanceIds;
+
+	ResourceAmount resCtr;
+
+	void countResources(std::string file) {
+		nlohmann::json js;
+		std::ifstream ifs(file);
+
+		if(!ifs.is_open()) {
+			std::cout << "Error! Scene file not found!";
+			exit(-1);
+		}
+
+		try {
+			ifs >> js;
+			ifs.close();
+
+			resCtr.textureInPool = js["textures"].size();
+			resCtr.uboInPool = js["instances"].size();
+			resCtr.dsInPool = js["instances"].size();
+		} catch(const nlohmann::json::exception &e) {
+			std::cout << e.what() << '\n';
+		}
+	}
 
 	void init(BaseProject *_BP, VertexDescriptor *VD, DescriptorSetLayout &DSL,
 			  Pipeline &P, std::string file) {
