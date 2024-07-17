@@ -142,9 +142,6 @@ protected:
 
 		// Descriptor pool sizes
 		SC.countResources("models/scene.json");
-		std::cout << "#ubo: " << SC.resCtr.uboInPool
-				  << ", #tex: " << SC.resCtr.textureInPool
-				  << ", #ds: " << SC.resCtr.dsInPool << std::endl;
 		uniformBlocksInPool = SC.resCtr.uboInPool;
 		texturesInPool = SC.resCtr.textureInPool;
 		setsInPool = SC.resCtr.dsInPool;
