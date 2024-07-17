@@ -54,52 +54,9 @@ protected:
 	// Please note that Model objects depends on the corresponding vertex
 	// structure Models
 	Model<Vertex> MRocket;
-	Model<Vertex> MWallN;
-	Model<Vertex> MWallE;
-	Model<Vertex> MWallS;
-	Model<Vertex> MWallW;
-	Model<Vertex> MWindow1;
-	Model<Vertex> MWindow2;
-	Model<Vertex> MFloor;
-	Model<Vertex> MRoof;
-	Model<Vertex> MBed;
-	Model<Vertex> MCloset;
-	Model<Vertex> MDesk;
-	Model<Vertex> MGamingDesk;
-	Model<Vertex> MRedColumn;
-	Model<Vertex> MClock;
-	Model<Vertex> MCoinSack;
-	Model<Vertex> MCoinStack;
-	Model<Vertex> MDoor;
-	Model<Vertex> MGamingPouf;
-	Model<Vertex> MLoungeChair;
-	Model<Vertex> MRecordTable;
-	Model<Vertex> MRoofLamp;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
-	DescriptorSet DSWallN;
-	DescriptorSet DSWallE;
-	DescriptorSet DSWallS;
-	DescriptorSet DSWallW;
-	DescriptorSet DSWindow1;
-	DescriptorSet DSWindow2;
-	DescriptorSet DSFloor;
-	DescriptorSet DSRoof;
-	DescriptorSet DSBed;
-	DescriptorSet DSCloset;
-	DescriptorSet DSDesk;
-	DescriptorSet DSGamingDesk;
-	DescriptorSet DSDoor;
-	DescriptorSet DSRedColumn;
-	DescriptorSet DSClock;
-	DescriptorSet DSCoinSack;
-	DescriptorSet DSCoinStack;
-	DescriptorSet DSGamingPouf;
-	DescriptorSet DSLoungeChair;
-	DescriptorSet DSRecordTable;
-	DescriptorSet DSRoofLamp;
-	// DescriptorSet DSCoinTata;
 
 	// Textures
 	Texture TFurniture;
@@ -108,28 +65,6 @@ protected:
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
-	UniformBufferObject WallNUbo;
-	UniformBufferObject WallEUbo;
-	UniformBufferObject WallSUbo;
-	UniformBufferObject WallWUbo;
-	UniformBufferObject Window1Ubo;
-	UniformBufferObject Window2Ubo;
-	UniformBufferObject FloorUbo;
-	UniformBufferObject RoofUbo;
-	UniformBufferObject BedUbo;
-	UniformBufferObject ClosetUbo;
-	UniformBufferObject DeskUbo;
-	UniformBufferObject GamingDeskUbo;
-	UniformBufferObject RedColumnUbo;
-	UniformBufferObject ClockUbo;
-	UniformBufferObject CoinSackUbo;
-	UniformBufferObject CoinStackUbo;
-	UniformBufferObject DoorUbo;
-	UniformBufferObject GamingPoufUbo;
-	UniformBufferObject LoungeChairUbo;
-	UniformBufferObject RecordTableUbo;
-	UniformBufferObject RoofLampUbo;
-	// UniformBufferObject CoinTataUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -357,8 +292,8 @@ protected:
 		gubo.eyePos = CamPos;
 
 		// place objects on scene
+		UniformBufferObject ubo{};
 		for(auto instance : SC.InstanceIds) {
-			UniformBufferObject ubo{};
 			int i = instance.second;
 			ubo.mvpMat = ViewPrj * SC.I[i].Wm;
 			SC.DS[i]->map(currentImage, &ubo, sizeof(ubo), 0);
