@@ -224,7 +224,8 @@ public:
 	std::vector<Vert> vertices{};
 	std::vector<uint32_t> indices{};
 	void loadModelOBJ(std::string file, std::vector<std::vector<glm::vec3>> &vecList);
-	void loadModelGLTF(std::string file, bool encoded, std::vector<std::vector<glm::vec3>> &vecList);
+	void loadModelGLTF(std::string file, bool encoded,
+					   std::vector<std::vector<glm::vec3>> &vecList);
 	void createIndexBuffer();
 	void createVertexBuffer();
 
@@ -400,7 +401,7 @@ protected:
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
 	std::vector<std::vector<glm::vec3>> vecList;
-    std::vector<BoundingBox> bbList;
+	std::vector<BoundingBox> bbList;
 
 	class VendorID {
 	public:
@@ -2029,7 +2030,8 @@ std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDes
 
 
 template<class Vert>
-void Model<Vert>::loadModelOBJ(std::string file, std::vector<std::vector<glm::vec3>> &vecList) {
+void Model<Vert>::loadModelOBJ(std::string file,
+							   std::vector<std::vector<glm::vec3>> &vecList) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -2087,15 +2089,15 @@ void Model<Vert>::loadModelOBJ(std::string file, std::vector<std::vector<glm::ve
 	std::cout << "[OBJ] Vertices: " << vertices.size() << "\n";
 	std::cout << "Indices: " << indices.size() << "\n";
 
-    std::vector<glm::vec3> itemVertices;
+	std::vector<glm::vec3> itemVertices;
 	// Derive bounding box
 	for(const auto &shape : shapes) {
 		for(const auto &i : shape.mesh.indices) {
-            glm::vec3 vertex = glm::vec3(attrib.vertices[3 * i.vertex_index + 0],
-                                         attrib.vertices[3 * i.vertex_index + 1],
-                                         attrib.vertices[3 * i.vertex_index + 2]);
-            itemVertices.push_back(vertex);
-        }
+			glm::vec3 vertex = glm::vec3(attrib.vertices[3 * i.vertex_index + 0],
+										 attrib.vertices[3 * i.vertex_index + 1],
+										 attrib.vertices[3 * i.vertex_index + 2]);
+			itemVertices.push_back(vertex);
+		}
 		vecList.push_back(itemVertices);
 	}
 }
@@ -2244,7 +2246,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 				}
 			}
 
-            std::vector<glm::vec3> itemVertices;
+			std::vector<glm::vec3> itemVertices;
 			for(int i = 0; i < cntTot; i++) {
 				Vert vertex{};
 
@@ -2254,8 +2256,8 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 					glm::vec3 *o =
 						(glm::vec3 *)((char *)(&vertex) + VD->Position.offset);
 					*o = pos;
-                    itemVertices.push_back(pos);
-                }
+					itemVertices.push_back(pos);
+				}
 
 				if((i < cntNorm) && meshHasNorm && VD->Normal.hasIt) {
 					glm::vec3 normal = {bufferNormals[3 * i + 0],
@@ -2283,10 +2285,10 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 					*o = texCoord;
 				}
 				vertices.push_back(vertex);
-            }
-            vecList.push_back(itemVertices);
+			}
+			vecList.push_back(itemVertices);
 
-            const tinygltf::Accessor &accessor = model.accessors[primitive.indices];
+			const tinygltf::Accessor &accessor = model.accessors[primitive.indices];
 			const tinygltf::BufferView &bufferView =
 				model.bufferViews[accessor.bufferView];
 			const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
@@ -2318,7 +2320,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 			  << " Vertices: " << vertices.size()
 			  << "\n\tIndices: " << indices.size() << "\n";
 
-    /*
+	/*
 	for(const auto &mesh : model.meshes) {
 
 		for(const auto &primitive : mesh.primitives) {
@@ -2328,8 +2330,8 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 
 			auto pIt = primitive.attributes.find("POSITION");
 			if(pIt != primitive.attributes.end()) {
-				const tinygltf::Accessor &posAccessor = model.accessors[pIt->second];
-				const tinygltf::BufferView &posView =
+				const tinygltf::Accessor &posAccessor =
+	model.accessors[pIt->second]; const tinygltf::BufferView &posView =
 					model.bufferViews[posAccessor.bufferView];
 				bufferPos = reinterpret_cast<const float *>(
 					&(model.buffers[posView.buffer]
@@ -2343,19 +2345,18 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
 				}
 			}
 
-            // Add vertices to sublist
-            std::vector<glm::vec3> itemVertices;
+			// Add vertices to sublist
+			std::vector<glm::vec3> itemVertices;
 			for(int i = 0; i < cntPos; i++) {
 				glm::vec3 vertex =
 					glm::vec3(bufferPos[3 * i + 0], bufferPos[3 * i + 1],
 							  bufferPos[3 * i + 2]);
-                itemVertices.push_back(vertex);
+				itemVertices.push_back(vertex);
 			}
-            vecList.push_back(itemVertices);
-        }
-    }
-    */
-
+			vecList.push_back(itemVertices);
+		}
+	}
+	*/
 }
 
 template<class Vert>

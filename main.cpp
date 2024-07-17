@@ -1,7 +1,6 @@
 // This has been adapted from the Vulkan tutorial
 
-#include "modules/Starter.hpp"
-#include <glm/gtx/string_cast.hpp>
+#include "modules/SceneManager.hpp"
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -39,6 +38,8 @@ class ConfigManager : public BaseProject {
 protected:
 	// Current aspect ratio (used by the callback that resized the window
 	float Ar;
+
+	SceneManager<Vertex> SC;
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -190,17 +191,17 @@ protected:
 		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG, vecList);
 		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG, vecList);
 		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG, vecList);
-        MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG, vecList);
-        MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG, vecList);
-        MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG, vecList);
-        MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG, vecList);
-        MDoor.init(this, &VD, "models/door.mgcg", MGCG, vecList);
+		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG, vecList);
+		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG, vecList);
+		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG, vecList);
+		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG, vecList);
+		MDoor.init(this, &VD, "models/door.mgcg", MGCG, vecList);
 		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG, vecList);
 		MClock.init(this, &VD, "models/clock.mgcg", MGCG, vecList);
-        MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, vecList);
-        MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, vecList);
-        MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, vecList);
-        MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, vecList);
+		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, vecList);
+		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, vecList);
+		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, vecList);
+		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, vecList);
 		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, vecList);
 		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
 		// Create the textures
@@ -208,6 +209,9 @@ protected:
 		TFurniture.init(this, "textures/Textures_Forniture.png");
 		TSack.init(this, "textures/MoneySack_Albedo.png");
 		TStack.init(this, "textures/CoinStack_Albedo.png");
+
+		// SCENE INIT
+		SC.init(this, &VD, DSL, PBlinn, "models/scene.json");
 
 		// Init local variables
 	}
@@ -566,37 +570,35 @@ protected:
 
 	void placeObject(int index, bool (&placed)[22], glm::mat4& World,
 					 std::vector<BoundingBox>& bbList) {
-
 		if(!placed[index]) {
+			BoundingBox bbox;
+			glm::vec4 homogeneousPoint;
 
-            BoundingBox bbox;
-            glm::vec4 homogeneousPoint;
+			bbox.min = glm::vec3(std::numeric_limits<float>::max());
+			bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
+			for(int j = 0; j < vecList[index].size(); j++) {
+				glm::vec3 vertex = vecList[index][j];
+				homogeneousPoint = glm::vec4(vertex, 1.0f);
+				glm::vec4 newVertex = World * homogeneousPoint;
+				vertex = glm::vec3(newVertex);
 
-            bbox.min = glm::vec3(std::numeric_limits<float>::max());
-            bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
-            for (int j = 0; j < vecList[index].size(); j++) {
-                glm::vec3 vertex = vecList[index][j];
-                homogeneousPoint = glm::vec4(vertex, 1.0f);
-                glm::vec4 newVertex = World * homogeneousPoint;
-                vertex = glm::vec3(newVertex);
+				bbox.min = glm::min(bbox.min, vertex);
+				bbox.max = glm::max(bbox.max, vertex);
+			}
+			bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
+			bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
+			/*
+			if(index == 16 || index == 17) {
+				bbox.max = glm::vec3(0.0f);
+				bbox.min = glm::vec3(0.0f);
+			}*/
+			bbList.push_back(bbox);
 
-                bbox.min = glm::min(bbox.min, vertex);
-                bbox.max = glm::max(bbox.max, vertex);
-            }
-            bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
-            bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
-            /*
-            if(index == 16 || index == 17) {
-                bbox.max = glm::vec3(0.0f);
-                bbox.min = glm::vec3(0.0f);
-            }*/
-            bbList.push_back(bbox);
-
-            /*
-            std::cout << "Bounding box " << index << " : " <<
-                bbList[index].min.x << ", " << bbList[index].min.y << ", " << bbList[index].min.z << ", " <<
-                bbList[index].max.x << ", " << bbList[index].max.y << ", " << bbList[index].max.z << "\n";
-            */
+			/*
+			std::cout << "Bounding box " << index << " : " <<
+				bbList[index].min.x << ", " << bbList[index].min.y << ", " << bbList[index].min.z << ", " <<
+				bbList[index].max.x << ", " << bbList[index].max.y << ", " << bbList[index].max.z << "\n";
+			*/
 
 			placed[index] = true;
 		}
@@ -902,8 +904,8 @@ protected:
 		} else {
 			// Gravity (gravity constant can be lowered)
 			verticalSpeed += GRAVITY_CONSTANT * deltaT;
-            // Set terminal falling speed
-            verticalSpeed = glm::max(verticalSpeed, 2.0f);
+			// Set terminal falling speed
+			verticalSpeed = glm::max(verticalSpeed, 2.0f);
 			rocketPosition.y -= verticalSpeed * deltaT;
 			// Ground
 			if(rocketPosition.y < 10.0f) rocketPosition.y = 10.0f;
@@ -939,11 +941,11 @@ protected:
 
 		// Need to check collisions first
 		bool isCollision = false;
-        int collisionIndex = -1;
+		int collisionIndex = -1;
 		for(int i = 1; i < bbList.size(); i++) {
 			if(checkCollision(rocketCollider, bbList[i])) {
 				isCollision = true;
-                collisionIndex = i;
+				collisionIndex = i;
 				std::cout << i << "\n";
 				break;
 			}
@@ -953,22 +955,22 @@ protected:
 		if(!isCollision)
 			rocketPosition += rocketSpeed * deltaT;
 		else {
-            /*
-            glm::vec3 closestPoint;
-            closestPoint.x = glm::max(rocketCollider.center.x, glm::min(bbList[collisionIndex].max.x, bbList[collisionIndex].min.x));
-            closestPoint.y = glm::max(rocketCollider.center.y, glm::min(bbList[collisionIndex].max.y, bbList[collisionIndex].min.y));
-            closestPoint.z = glm::max(rocketCollider.center.z, glm::min(bbList[collisionIndex].max.z, bbList[collisionIndex].min.z));
+			/*
+			glm::vec3 closestPoint;
+			closestPoint.x = glm::max(rocketCollider.center.x, glm::min(bbList[collisionIndex].max.x, bbList[collisionIndex].min.x));
+			closestPoint.y = glm::max(rocketCollider.center.y, glm::min(bbList[collisionIndex].max.y, bbList[collisionIndex].min.y));
+			closestPoint.z = glm::max(rocketCollider.center.z, glm::min(bbList[collisionIndex].max.z, bbList[collisionIndex].min.z));
 
-            glm::vec3 difference = closestPoint - rocketCollider.center;
-            float distanceSquared = glm::dot(difference, difference);
-            float distance = glm::sqrt(distanceSquared);
+			glm::vec3 difference = closestPoint - rocketCollider.center;
+			float distanceSquared = glm::dot(difference, difference);
+			float distance = glm::sqrt(distanceSquared);
 
-            if (distance < rocketCollider.radius) {
-                glm::vec3 penetrationVector = difference * ((rocketCollider.radius - distance) / distance);
-                rocketPosition -= penetrationVector;
-            }*/
-            rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
-        }
+			if (distance < rocketCollider.radius) {
+				glm::vec3 penetrationVector = difference * ((rocketCollider.radius - distance) / distance);
+				rocketPosition -= penetrationVector;
+			}*/
+			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+		}
 
 		// Update rocket world matrix
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);

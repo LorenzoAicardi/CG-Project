@@ -1,0 +1,195 @@
+{
+  "models": [
+    {
+      "id": "rkt",
+      "model": "models/rotrocketypositive.obj",
+      "format": "OBJ"
+    },
+    {
+      "id": "wall",
+      "model": "models/blue_wall.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "win",
+      "model": "models/window.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "floor",
+      "model": "models/parquet.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "bed",
+      "model": "models/tower_bed.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "closet",
+      "model": "models/big_closet.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "desk",
+      "model": "models/study_desk.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "gdesk",
+      "model": "models/gaming_desk.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "gpouf",
+      "model": "models/gaming_pouf.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "door",
+      "model": "models/door.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "col",
+      "model": "models/red_column.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "clk",
+      "model": "models/clock.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "lngchr",
+      "model": "models/lounge_chair.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "tbl",
+      "model": "models/record_table.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "rlamp",
+      "model": "models/roof_lamp.mgcg",
+      "format": "MGCG"
+    }
+  ],
+  "textures": [
+    {
+      "id": "tf",
+      "texture": "textures/Textures_Forniture.png"
+    }
+  ],
+  "instances": [
+    {
+      "id": "walln",
+      "model": "wall",
+      "texture": "tf",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            10.0,
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            3.0,
+            1.0,
+            1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "walle",
+      "model": "wall",
+      "texture": "tf",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            16.0,
+            10.0,
+            14.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            90.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            -2.0,
+            1.0,
+            -1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "walls",
+      "model": "wall",
+      "texture": "tf",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            10.0,
+            10.0,
+            18.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            -3.0,
+            1.0,
+            -1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wallw",
+      "model": "wall",
+      "texture": "tf",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            4.0,
+            10.0,
+            14.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -90.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            -2.0,
+            1.0,
+            -1.0
+          ]
+        }
+      ]
+    }
+  ]
+}
