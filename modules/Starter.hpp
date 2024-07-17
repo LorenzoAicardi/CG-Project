@@ -67,15 +67,14 @@ struct SwapChainSupportDetails {
 
 
 enum CollisionType {
-    COLLECTIBLE,
-    OBJECT
+    COLLECTIBLE = 0,
+    OBJECT = 1
 };
 
 struct BoundingBox {
 	glm::vec3 min;
 	glm::vec3 max;
     CollisionType cType;
-    bool display;
 };
 
 

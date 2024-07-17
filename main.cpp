@@ -79,7 +79,7 @@ protected:
 	Model<Vertex> MGamingDesk;
 	Model<Vertex> MRedColumn;
 	Model<Vertex> MClock;
-	Model<Vertex> MCoinSack;
+	Model<Vertex> MCoin;
 	Model<Vertex> MCoinStack;
 	Model<Vertex> MDoor;
 	Model<Vertex> MGamingPouf;
@@ -105,8 +105,8 @@ protected:
 	DescriptorSet DSDoor;
 	DescriptorSet DSRedColumn;
 	DescriptorSet DSClock;
-	DescriptorSet DSCoinSack;
-	DescriptorSet DSCoinStack;
+	DescriptorSet DSCoin;
+	// DescriptorSet DSCoinStack;
 	DescriptorSet DSGamingPouf;
 	DescriptorSet DSLoungeChair;
 	DescriptorSet DSRecordTable;
@@ -115,7 +115,7 @@ protected:
 
 	// Textures
 	Texture TFurniture;
-	Texture TSack;
+	Texture TCoin;
 	Texture TStack;
 
 	// C++ storage for uniform variables
@@ -134,8 +134,8 @@ protected:
 	UniformBufferObject GamingDeskUbo;
 	UniformBufferObject RedColumnUbo;
 	UniformBufferObject ClockUbo;
-	UniformBufferObject CoinSackUbo;
-	UniformBufferObject CoinStackUbo;
+	UniformBufferObject CoinUbo;
+	// UniformBufferObject CoinStackUbo;
 	UniformBufferObject DoorUbo;
 	UniformBufferObject GamingPoufUbo;
 	UniformBufferObject LoungeChairUbo;
@@ -214,14 +214,13 @@ protected:
         MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, vecList);
         MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, vecList);
         MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, vecList);
-        MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, vecList);
-		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, vecList);
-		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
+        MCoin.init(this, &VD, "models/Coin_Gold.mgcg", MGCG, vecList);
+		// MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, vecList);
 		// Create the textures
 		// The second parameter is the file name
 		TFurniture.init(this, "textures/Textures_Forniture.png");
-		TSack.init(this, "textures/MoneySack_Albedo.png");
-		TStack.init(this, "textures/CoinStack_Albedo.png");
+		TCoin.init(this, "textures/Coin_Gold_Albedo.png");
+		// TStack.init(this, "textures/CoinStack_Albedo.png");
 
 		// Init local variables
 	}
@@ -303,14 +302,15 @@ protected:
 					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					  {1, TEXTURE, 0, &TFurniture},
 					  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
-		DSCoinSack.init(this, &DSL,
+		DSCoin.init(this, &DSL,
 						{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						 {1, TEXTURE, 0, &TSack},
+						 {1, TEXTURE, 0, &TCoin},
 						 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+        /*
 		DSCoinStack.init(this, &DSL,
 						 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						  {1, TEXTURE, 0, &TStack},
-						  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+						  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}}); */
 		DSGamingPouf.init(this, &DSL,
 						  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						   {1, TEXTURE, 0, &TFurniture},
@@ -359,8 +359,8 @@ protected:
 		DSDesk.cleanup();
 		DSRedColumn.cleanup();
 		DSClock.cleanup();
-		DSCoinSack.cleanup();
-		DSCoinStack.cleanup();
+		DSCoin.cleanup();
+		// DSCoinStack.cleanup();
 		DSGamingPouf.cleanup();
 		DSLoungeChair.cleanup();
 		DSRecordTable.cleanup();
@@ -375,7 +375,7 @@ protected:
 	void localCleanup() override {
 		// Cleanup textures
 		TFurniture.cleanup();
-		TSack.cleanup();
+		TCoin.cleanup();
 		TStack.cleanup();
 
 		// Cleanup models
@@ -395,7 +395,7 @@ protected:
 		MDesk.cleanup();
 		MRedColumn.cleanup();
 		MClock.cleanup();
-		MCoinSack.cleanup();
+		MCoin.cleanup();
 		MCoinStack.cleanup();
 		MGamingPouf.cleanup();
 		MLoungeChair.cleanup();
@@ -501,16 +501,17 @@ protected:
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
-		MCoinSack.bind(commandBuffer);
-		DSCoinSack.bind(commandBuffer, PBlinn, 0, currentImage);
+		MCoin.bind(commandBuffer);
+		DSCoin.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-						 static_cast<uint32_t>(MCoinSack.indices.size()), 1, 0, 0, 0);
+                         static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
 
+        /*
 		MCoinStack.bind(commandBuffer);
-		DSCoinStack.bind(commandBuffer, PBlinn, 0, currentImage);
+		DSCoin.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoinStack.indices.size()), 1, 0,
-						 0, 0);
+						 0, 0);*/
 
 		MGamingPouf.bind(commandBuffer);
 		DSGamingPouf.bind(commandBuffer, PBlinn, 0, currentImage);
@@ -544,7 +545,7 @@ protected:
 		*/
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) + glm::vec3(10.0f);
+	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f) ;
 
     glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
@@ -561,13 +562,29 @@ protected:
 	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
 	float GRAVITY_CONSTANT = 2.0f;
 
-	bool isPlaced[22] = {0};
+	bool isPlaced[21] = {0};
 
 	SphereCollider rocketCollider;
     RocketState rocketState;
     glm::vec3 restingPosition;
 
-    // bool isCollected[2] = {0};
+    glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
+    glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
+    glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
+    glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.5f);
+    glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
+    std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
+                                            BETWEEN_BED_AND_CLOSET,
+                                            ABOVE_CLOSET,
+                                            ABOVE_RECORD_TABLE,
+                                            BEHIND_RED_COLUMN};
+    /*
+                                            glm::vec3(),
+                                            glm::vec3(),
+                                            glm::vec3(),
+                                            glm::vec3(),
+                                            glm::vec3()};*/
+    int coinLocation = 0;
 
 	// Helper function for checking collisions
 	bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
@@ -575,7 +592,6 @@ protected:
 		float y = glm::max(box.min.y, glm::min(sphere.center.y, box.max.y));
 		float z = glm::max(box.min.z, glm::min(sphere.center.z, box.max.z));
 
-		// this is the same as isPointInsideSphere
 		float distance = glm::sqrt((x - sphere.center.x) * (x - sphere.center.x) +
 								   (y - sphere.center.y) * (y - sphere.center.y) +
 								   (z - sphere.center.z) * (z - sphere.center.z));
@@ -584,7 +600,7 @@ protected:
 	}
 
 
-	void placeObject(int index, bool (&placed)[22], glm::mat4& World,
+	void placeObject(int index, bool (&placed)[21], glm::mat4& World,
 					 std::vector<BoundingBox>& bbList) {
 
 		if(!placed[index]) {
@@ -605,9 +621,7 @@ protected:
             }
             bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
             bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
-            index < 19 ? bbox.cType = OBJECT : bbox.cType = COLLECTIBLE;
-
-            bbox.display = true;
+            index <= 19 ? bbox.cType = OBJECT : bbox.cType = COLLECTIBLE;
 
             bbList.push_back(bbox);
 
@@ -679,7 +693,7 @@ protected:
 
 		// north wall
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(10.0f));
+							   glm::vec3(0.0f, 0.0f, 0.0f) );
 		World *= glm::scale(glm::mat4(1), glm::vec3(3.0f, 2.0f, 1.0f));
 		WallNUbo.mvpMat = ViewPrj * World;
 		placeObject(1, isPlaced, World, bbList);
@@ -688,7 +702,7 @@ protected:
 
 		// east wall
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+							   glm::vec3(6.0f, 0.0f, 4.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
@@ -699,7 +713,7 @@ protected:
 
 		// south wall
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 0.0f, 8.0f) + glm::vec3(10.0f));
+							   glm::vec3(0.0f, 0.0f, 8.0f) );
 		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
 		WallSUbo.mvpMat = ViewPrj * World;
 		placeObject(3, isPlaced, World, bbList);
@@ -708,7 +722,7 @@ protected:
 
 		// west wall
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-6.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+							   glm::vec3(-6.0f, 0.0f, 4.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(-3.0f, 2.0f, -1.0f));
@@ -719,7 +733,7 @@ protected:
 
 		// windows
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(5.8f, 2.5f, 2.0f) + glm::vec3(10.0f));
+							   glm::vec3(5.8f, 2.5f, 2.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window1Ubo.mvpMat = ViewPrj * World;
@@ -728,7 +742,7 @@ protected:
 		DSWindow1.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(5.8f, 2.5f, 6.0f) + glm::vec3(10.0f));
+							   glm::vec3(5.8f, 2.5f, 6.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		Window2Ubo.mvpMat = ViewPrj * World;
@@ -738,7 +752,7 @@ protected:
 
 		// floor
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 0.0f, 4.0f) + glm::vec3(10.0f));
+							   glm::vec3(0.0f, 0.0f, 4.0f) );
 		World *= glm::scale(glm::mat4(1), glm::vec3(4.0f, 1.0f, 3.0f));
 		FloorUbo.mvpMat = ViewPrj * World;
 		placeObject(7, isPlaced, World, bbList);
@@ -747,7 +761,7 @@ protected:
 
 		// roof
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 4.0f, 0.0f) + glm::vec3(10.0f));
+							   glm::vec3(0.0f, 4.0f, 0.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(5.0f, 2.0f, 4.0f));
@@ -758,7 +772,7 @@ protected:
 
 		// bed
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-4.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
+							   glm::vec3(-4.0f, 0.0f, 1.0f) );
 		BedUbo.mvpMat = ViewPrj * World;
 		placeObject(9, isPlaced, World, bbList);
 		DSBed.map(currentImage, &BedUbo, sizeof(BedUbo), 0);
@@ -766,7 +780,7 @@ protected:
 
 		// closet
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-1.0f, 0.0f, 0.4f) + glm::vec3(10.0f));
+							   glm::vec3(-1.0f, 0.0f, 0.4f) );
 		ClosetUbo.mvpMat = ViewPrj * World;
 		placeObject(10, isPlaced, World, bbList);
 		DSCloset.map(currentImage, &ClosetUbo, sizeof(ClosetUbo), 0);
@@ -774,7 +788,7 @@ protected:
 
 		// desk
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(5.5f, 0.0f, 2.0f) + glm::vec3(10.0f));
+							   glm::vec3(5.5f, 0.0f, 2.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(-90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(2.0f, 2.0f, 2.0f));
@@ -785,7 +799,7 @@ protected:
 
 		// gaming desk
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(3.0f, 0.0f, 0.7f) + glm::vec3(10.0f));
+							   glm::vec3(3.0f, 0.0f, 0.7f) );
 		GamingDeskUbo.mvpMat = ViewPrj * World;
 		placeObject(12, isPlaced, World, bbList);
 		DSGamingDesk.map(currentImage, &GamingDeskUbo, sizeof(GamingDeskUbo), 0);
@@ -793,7 +807,7 @@ protected:
 
 		// gaming pouf
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(3.0f, 0.0f, 1.0f) + glm::vec3(10.0f));
+							   glm::vec3(3.0f, 0.0f, 1.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(-180.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		GamingPoufUbo.mvpMat = ViewPrj * World;
@@ -803,7 +817,7 @@ protected:
 
 		// door
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-0.5f, 0.0f, 7.9f) + glm::vec3(10.0f));
+							   glm::vec3(-0.5f, 0.0f, 7.9f) );
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		DoorUbo.mvpMat = ViewPrj * World;
 		placeObject(14, isPlaced, World, bbList);
@@ -812,7 +826,7 @@ protected:
 
 		// red column
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(3.5f, 2.0f, 6.0f) + glm::vec3(10.0f));
+							   glm::vec3(3.5f, 2.0f, 6.0f) );
 		World *= glm::scale(glm::mat4(1), glm::vec3(-1.0f, 1.0f, -1.0f));
 		RedColumnUbo.mvpMat = ViewPrj * World;
 		placeObject(15, isPlaced, World, bbList);
@@ -821,7 +835,7 @@ protected:
 
 		// clock
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-5.9f, 2.0f, 3.0f) + glm::vec3(10.0f));
+							   glm::vec3(-5.9f, 2.0f, 3.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(90.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		ClockUbo.mvpMat = ViewPrj * World;
@@ -831,7 +845,7 @@ protected:
 
 		// lounge chair
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-5.0f, 0.0f, 7.0f) + glm::vec3(10.0f));
+							   glm::vec3(-5.0f, 0.0f, 7.0f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(135.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		LoungeChairUbo.mvpMat = ViewPrj * World;
@@ -841,7 +855,7 @@ protected:
 
 		// record & TV table
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(-3.0f, 0.0f, 7.5f) + glm::vec3(10.0f));
+							   glm::vec3(-3.0f, 0.0f, 7.5f) );
 		World *= glm::rotate(glm::mat4(1), glm::radians(180.0f),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(1.5f, 1.5f, 1.5f));
@@ -852,30 +866,28 @@ protected:
 
 		// roof lamp
 		World = glm::translate(glm::mat4(1),
-							   glm::vec3(0.0f, 3.8f, 4.0f) + glm::vec3(10.0f));
+							   glm::vec3(0.0f, 3.8f, 4.0f) );
 		RoofLampUbo.mvpMat = ViewPrj * World;
 		placeObject(19, isPlaced, World, bbList);
 		DSRoofLamp.map(currentImage, &RoofLampUbo, sizeof(RoofLampUbo), 0);
 		DSRoofLamp.map(currentImage, &gubo, sizeof(gubo), 2);
 
-		// coin sack
-        if(bbList[20].display) {
-            World = glm::translate(glm::mat4(1),
-                                   glm::vec3(0.0f, 1.0f, 4.0f) + glm::vec3(10.0f));
-        } else {
-            World = glm::translate(glm::mat4(1),
-                                   glm::vec3(1000.0f));
-        }
+		// coin
+
+        World = glm::translate(glm::mat4(1),
+                               coinLocations[coinLocation]);
+        World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
-        CoinSackUbo.mvpMat = ViewPrj * World;
+        CoinUbo.mvpMat = ViewPrj * World;
         placeObject(20, isPlaced, World, bbList);
-        DSCoinSack.map(currentImage, &CoinSackUbo, sizeof(CoinSackUbo), 0);
-        DSCoinSack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+        DSCoin.map(currentImage, &CoinUbo, sizeof(CoinUbo), 0);
+        DSCoin.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 
 		// coin stack
+        /*
         if(bbList[21].display) {
             World = glm::translate(glm::mat4(1),
-                                   glm::vec3(0.0f, 1.0f, 2.0f) + glm::vec3(10.0f));
+                                   glm::vec3(0.0f, 1.0f, 2.0f));
         } else {
             World = glm::translate(glm::mat4(1),
                                    glm::vec3(1000.0f));
@@ -885,7 +897,7 @@ protected:
         placeObject(21, isPlaced, World, bbList);
         DSCoinStack.map(currentImage, &CoinStackUbo, sizeof(CoinStackUbo), 0);
         DSCoinStack.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
-
+        */
 		/*
 		World = glm::translate(glm::mat4(1), glm::vec3(0.0f, 1.0f, 6.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.01f, 0.01f, 0.01f));
@@ -901,7 +913,6 @@ protected:
             if(checkCollision(rocketCollider, bbList[i])) {
                 isCollision = true;
                 collisionIndex = i;
-                std::cout << i << std::endl;
                 break;
             }
         }
@@ -967,9 +978,12 @@ protected:
 
                         break;
                     }
-                    case COLLECTIBLE:
-                        bbList[collisionIndex].display = false;
+                    case COLLECTIBLE: {
+                        coinLocation = (std::rand() % (4 - 0 + 1));
+                        isPlaced[20] = false;
+                        bbList.pop_back();
                         break;
+                    }
                 }
             }
 		} else {
@@ -995,6 +1009,7 @@ protected:
                     }
                 }
             } else {
+                std::cout << "Collision type: " << bbList[collisionIndex].cType << std::endl;
                 switch (bbList[collisionIndex].cType){
                     case OBJECT:{
                         // Compute the closest point on the AABB to the sphere center
@@ -1016,13 +1031,13 @@ protected:
                         if (rocketPosition.y <= bbList[collisionIndex].max.y + rocketCollider.radius && // If the collision is coming from above
                             !(std::abs(normal.x) > 0.5f || std::abs(normal.z) > 0.5f) && // Not from the side
                             normal.y != -1.0f){  // Not from below
-                            std::cout << normal.x << ", " << normal.y << ", " << normal.z << std::endl;
                             rocketSpeed = glm::vec3(0.0f);
                             rocketState = RESTING;
                             restingPosition.x = rocketPosition.x;
                             restingPosition.y = bbList[collisionIndex].max.y + rocketCollider.radius + 0.01f;
                             restingPosition.z = rocketPosition.z;
                         }
+                        break;
                     }
                     case COLLECTIBLE: {
                         rocketPosition.y -= verticalSpeed * deltaT;
@@ -1033,7 +1048,10 @@ protected:
                             speed = glm::max(speed, 0.0f);
                             rocketSpeed = glm::normalize(rocketSpeed) * speed;
                         }
-                        bbList[collisionIndex].display = false;
+
+                        coinLocation = (std::rand() % (4-0+1));
+                        isPlaced[20] = false;
+                        bbList.pop_back();
                         break;
                     }
                 }
