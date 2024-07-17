@@ -23,6 +23,17 @@ layout(set = 0, binding = 1) uniform sampler2D tex;
 
 #define PI 3.14159
 
+// coefficients for the spherical harmonics ambient light term
+const vec3 C00  = vec3(.38f, .43f, .45f)/8.0f;
+const vec3 C1m1 = vec3(.29f, .36f, .41f)/8.0f;
+const vec3 C10  = vec3(.04f, .03f, .01f)/8.0f;
+const vec3 C11  = vec3(-.10f, -.10f, -.09f)/8.0f;
+const vec3 C2m2 = vec3(-.06f, -.06f, -.04f)/8.0f;
+const vec3 C2m1 = vec3(.01f, -.01f, -.05f)/8.0f;
+const vec3 C20  = vec3(-.09f, -.13f, -.15f)/8.0f;
+const vec3 C21  = vec3(-.06f, -.05f, -.04f)/8.0f;
+const vec3 C22  = vec3(.02f, .00f, -.05f)/8.0f;
+
 vec3 directLightDir(vec3 pos, int i) {
     return normalize(gubo.lightDir[i]);
 }
@@ -86,7 +97,10 @@ void main() {
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor;
 
     // ambient lighting
-    vec3 ambient = albedo * 0.025f;
+    vec3 La = C00 + (norm.x*C11) + (norm.y*C1m1) + (norm.z*C10) + (norm.x*norm.y*C2m2) +
+    (norm.y*norm.z*C1m1) + (norm.z*norm.x*C11) + ((norm.x*norm.x - norm.y*norm.y) * C22) +
+    ((3*norm.z*norm.z - 1) * C20);
+    vec3 ambient = La * albedo;
     L += ambient;
 
     outColor = vec4(L, 1.0f);
