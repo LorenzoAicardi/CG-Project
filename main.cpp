@@ -50,6 +50,8 @@ protected:
 	Pipeline PBlinn;
 	/// self-emissive objects (e.g. lamps)
 	Pipeline PEmission;
+	/// cartoon Shader for the rocket
+	Pipeline PCartoon;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex
@@ -182,6 +184,7 @@ protected:
 					"shaders/CookTorranceShaderFrag.spv", {&DSL});
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv", {&DSL});
+		PCartoon.init(this, &VD, "shaders/CartoonShaderVert.spv", "shaders/CartoonShaderFrag.spv", {&DSL});
 
 		// init models
 		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ);
@@ -222,6 +225,7 @@ protected:
 		// This creates a new pipeline (with the current surface), using its shaders
 		PBlinn.create();
 		PEmission.create();
+		PCartoon.create();
 
 		// Here you define the data set
 		DSRocket.init(this, &DSL,
@@ -332,6 +336,7 @@ protected:
 		// Cleanup pipelines
 		PBlinn.cleanup();
 		PEmission.cleanup();
+		PCartoon.cleanup();
 
 		// Cleanup descriptor sets
 		DSRocket.cleanup();
@@ -400,6 +405,7 @@ protected:
 		// Destroys the pipelines
 		PBlinn.destroy();
 		PEmission.destroy();
+		PCartoon.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -533,6 +539,10 @@ protected:
 						 static_cast<uint32_t>(MCoinTata.indices.size()), 1,
 						 0, 0, 0);
 		*/
+		PCartoon.bind(commandBuffer);
+		MRocket.bind(commandBuffer);
+		DSRocket.bind(commandBuffer, PCartoon, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MRocket.indices.size()),1, 0, 0, 0);
 	}
 
 	glm::vec3 rocketPosition = glm::vec3(0.0f, 1.0f, 4.0f);
@@ -849,7 +859,7 @@ protected:
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
-		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.03f, 0.03f, 0.03f));
 
 		// Update view matrix
 		float radius = 0.5f;
