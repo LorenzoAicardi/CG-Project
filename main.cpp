@@ -14,6 +14,21 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 };
 
+struct MaterialUniformBufferObject {
+	struct {
+		alignas(16) glm::vec3 a;
+	} ambient[4];
+	struct {
+		alignas(16) glm::vec3 d;
+	} diffuse[4];
+	struct {
+		alignas(16) glm::vec3 s;
+	} specular[4];
+	struct {
+		alignas(16) glm::vec3 e;
+	} emission[4];
+};
+
 struct GlobalUniformBufferObject {
 	struct {
 		alignas(16) glm::vec3 v;
@@ -33,7 +48,7 @@ struct Vertex {
 	glm::vec2 UV;
 };
 
-
+std::vector<tinyobj::material_t> *materials = new std::vector<tinyobj::material_t>();
 class ConfigManager : public BaseProject {
 protected:
 	// Current aspect ratio (used by the callback that resized the window
@@ -41,6 +56,7 @@ protected:
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
+	DescriptorSetLayout DSLRocket;
 
 	// Vertex formats
 	VertexDescriptor VD;
@@ -109,6 +125,7 @@ protected:
 	Texture TFurniture;
 	Texture TSack;
 	Texture TStack;
+	Texture Tempty;
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
@@ -133,6 +150,8 @@ protected:
 	UniformBufferObject LoungeChairUbo;
 	UniformBufferObject RecordTableUbo;
 	UniformBufferObject RoofLampUbo;
+
+	MaterialUniformBufferObject RocketMaterialUbo;
 	// UniformBufferObject CoinTataUbo;
 
 	// Here you set the main application parameters
@@ -170,6 +189,18 @@ protected:
 				  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 				  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
 
+		DSLRocket.init(this,
+				 {// this array contains the bindings:
+				  // first  element : the binding number
+				  // second element : the type of element (buffer or texture)
+				  // using the corresponding Vulkan constant
+				  // third  element : the pipeline stage where it will be used
+				  // using the corresponding Vulkan constant
+				  {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+						{1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}});
+
+
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
@@ -184,31 +215,31 @@ protected:
 					"shaders/CookTorranceShaderFrag.spv", {&DSL});
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv", {&DSL});
-		PCartoon.init(this, &VD, "shaders/CartoonShaderVert.spv", "shaders/CartoonShaderFrag.spv", {&DSL});
+		PCartoon.init(this, &VD, "shaders/CartoonShaderVert.spv", "shaders/CartoonShaderFrag.spv", {&DSLRocket});
 
 		// init models
-		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ);
-		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG);
-		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG);
-		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG);
-		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG);
-		MWindow1.init(this, &VD, "models/window.mgcg", MGCG);
-		MWindow2.init(this, &VD, "models/window.mgcg", MGCG);
-		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG);
-		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG);
-		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG);
-		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG);
-		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG);
-		MDoor.init(this, &VD, "models/door.mgcg", MGCG);
-		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG);
-		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG);
-		MClock.init(this, &VD, "models/clock.mgcg", MGCG);
-		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG);
-		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG);
-		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG);
-		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG);
-		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG);
-		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG);
+		MRocket.init(this, &VD, "models/rotrocketypositive.OBj", OBJ, &materials, true);
+		MWallN.init(this, &VD, "models/blue_wall.mgcg", MGCG, NULL, false);
+		MWallE.init(this, &VD, "models/blue_wall.mgcg", MGCG, NULL, false);
+		MWallS.init(this, &VD, "models/blue_wall.mgcg", MGCG, NULL, false);
+		MWallW.init(this, &VD, "models/blue_wall.mgcg", MGCG, NULL, false);
+		MWindow1.init(this, &VD, "models/window.mgcg", MGCG, NULL, false);
+		MWindow2.init(this, &VD, "models/window.mgcg", MGCG, NULL, false);
+		MFloor.init(this, &VD, "models/parquet.mgcg", MGCG, NULL, false);
+		MRoof.init(this, &VD, "models/blue_wall.mgcg", MGCG, NULL, false);
+		MBed.init(this, &VD, "models/tower_bed.mgcg", MGCG, NULL, false);
+		MGamingDesk.init(this, &VD, "models/gaming_desk.mgcg", MGCG, NULL, false);
+		MCloset.init(this, &VD, "models/big_closet.mgcg", MGCG, NULL, false);
+		MDoor.init(this, &VD, "models/door.mgcg", MGCG, NULL, false);
+		MDesk.init(this, &VD, "models/study_desk.mgcg", MGCG, NULL, false);
+		MRedColumn.init(this, &VD, "models/red_column.mgcg", MGCG, NULL, false);
+		MClock.init(this, &VD, "models/clock.mgcg", MGCG, NULL, false);
+		MCoinSack.init(this, &VD, "models/coin_sack.mgcg", MGCG, NULL, false);
+		MCoinStack.init(this, &VD, "models/coin_stack.mgcg", MGCG, NULL, false);
+		MGamingPouf.init(this, &VD, "models/gaming_pouf.mgcg", MGCG, NULL, false);
+		MLoungeChair.init(this, &VD, "models/lounge_chair.mgcg", MGCG, NULL, false);
+		MRecordTable.init(this, &VD, "models/record_table.mgcg", MGCG, NULL, false);
+		MRoofLamp.init(this, &VD, "models/roof_lamp.mgcg", MGCG, NULL, false);
 		// MCoinTata.init(this, &VD, "models/Coin.obj", OBJ);
 
 		// Create the textures
@@ -216,6 +247,7 @@ protected:
 		TFurniture.init(this, "textures/Textures_Forniture.png");
 		TSack.init(this, "textures/MoneySack_Albedo.png");
 		TStack.init(this, "textures/CoinStack_Albedo.png");
+		Tempty.init(this, "textures/Empty.png");
 
 		// Init local variables
 	}
@@ -228,7 +260,7 @@ protected:
 		PCartoon.create();
 
 		// Here you define the data set
-		DSRocket.init(this, &DSL,
+		DSRocket.init(this, &DSLRocket,
 					  {// the second parameter, is a pointer to the Uniform Set Layout of this set
 					   // the last parameter is an array, with one element per binding of the set.
 					   // first  elmenet : the binding number
@@ -236,7 +268,7 @@ protected:
 					   // third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
 					   // fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 					   {0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					   {1, TEXTURE, 0, &TFurniture},
+					   {1, UNIFORM, sizeof(MaterialUniformBufferObject), nullptr},
 					   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
 		DSWallN.init(this, &DSL,
 					 {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -373,6 +405,7 @@ protected:
 		TFurniture.cleanup();
 		TSack.cleanup();
 		TStack.cleanup();
+		Tempty.cleanup();
 
 		// Cleanup models
 		MRocket.cleanup();
@@ -401,6 +434,7 @@ protected:
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
+		DSLRocket.cleanup();
 
 		// Destroys the pipelines
 		PBlinn.destroy();
@@ -416,10 +450,10 @@ protected:
 		PBlinn.bind(commandBuffer);
 
 		// binds the data sets
-		MRocket.bind(commandBuffer);
+		/*MRocket.bind(commandBuffer);
 		DSRocket.bind(commandBuffer, PBlinn, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);*/
 
 		MWallN.bind(commandBuffer);
 		DSWallN.bind(commandBuffer, PBlinn, 0, currentImage);
@@ -874,7 +908,14 @@ protected:
 
 		// Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
+		for(int i = 0; i < 4; i++){
+			RocketMaterialUbo.ambient[i].a = glm::vec3((*materials)[i].ambient[0],(*materials)[i].ambient[1],(*materials)[i].ambient[2] );
+			RocketMaterialUbo.diffuse[i].d = glm::vec3((*materials)[i].diffuse[0],(*materials)[i].diffuse[1],(*materials)[i].diffuse[2] );
+			RocketMaterialUbo.emission[i].e = glm::vec3((*materials)[i].emission[0],(*materials)[i].emission[1],(*materials)[i].emission[2] );
+			RocketMaterialUbo.specular[i].s = glm::vec3((*materials)[i].specular[0],(*materials)[i].specular[1],(*materials)[i].specular[2] );
+		}
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
+		DSRocket.map(currentImage, &RocketMaterialUbo, sizeof(RocketMaterialUbo), 1);
 		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}

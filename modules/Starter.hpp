@@ -218,12 +218,12 @@ class Model {
 public:
 	std::vector<Vert> vertices{};
 	std::vector<uint32_t> indices{};
-	void loadModelOBJ(std::string file);
+	void loadModelOBJ(std::string file, std::vector<tinyobj::material_t> **materials, bool load_material);
 	void loadModelGLTF(std::string file, bool encoded);
 	void createIndexBuffer();
 	void createVertexBuffer();
 
-	void init(BaseProject *bp, VertexDescriptor *VD, std::string file, ModelType MT);
+	void init(BaseProject *bp, VertexDescriptor *VD, std::string file, ModelType MT, std::vector<tinyobj::material_t> **materials, bool load_material);
 	void initMesh(BaseProject *bp, VertexDescriptor *VD);
 	void cleanup();
 	void bind(VkCommandBuffer commandBuffer);
@@ -2021,15 +2021,22 @@ std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDes
 
 
 template<class Vert>
-void Model<Vert>::loadModelOBJ(std::string file) {
+void Model<Vert>::loadModelOBJ(std::string file,
+							   std::vector<tinyobj::material_t> **materials, bool load_material) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
 	std::string warn, err;
-
-	std::cout << "Loading : " << file << "[OBJ]\n";
-	if(!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, file.c_str())) {
-		throw std::runtime_error(warn + err);
+	if(load_material == false){
+		std::vector<tinyobj::material_t> mat;
+		std::cout << "Loading : " << file << "[OBJ]\n";
+		if(!tinyobj::LoadObj(&attrib, &shapes, &mat, &warn, &err, file.c_str())) {
+			throw std::runtime_error(warn + err);
+		}
+	}else{
+		std::cout << "Loading : " << file << "[OBJ]\n";
+		if(!tinyobj::LoadObj(&attrib, &shapes, *materials, &warn, &err, file.c_str())) {
+			throw std::runtime_error(warn + err);
+		}
 	}
 
 	std::cout << "Building\n";
@@ -2338,11 +2345,11 @@ void Model<Vert>::initMesh(BaseProject *bp, VertexDescriptor *vd) {
 
 template<class Vert>
 void Model<Vert>::init(BaseProject *bp, VertexDescriptor *vd, std::string file,
-                       ModelType MT) {
+                       ModelType MT, std::vector<tinyobj::material_t> **materials, bool load_material) {
 	BP = bp;
 	VD = vd;
 	if(MT == OBJ) {
-		loadModelOBJ(file);
+		loadModelOBJ(file, materials, load_material);
 	} else if(MT == GLTF) {
 		loadModelGLTF(file, false);
 	} else if(MT == MGCG) {
