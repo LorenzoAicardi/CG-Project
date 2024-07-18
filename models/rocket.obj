@@ -1,6 +1,6 @@
 # Blender 4.1.1
 # www.blender.org
-mtllib rotrocket.mtl
+mtllib rocket.mtl
 o BezierCircle
 v -0.688794 0.521187 0.667565
 v -0.716324 0.537103 0.697550
