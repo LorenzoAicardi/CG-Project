@@ -98,12 +98,41 @@
       "id": "hdphn",
       "model": "models/headphones.mgcg",
       "format": "MGCG"
+    },
+    {
+      "id": "plant1",
+      "model": "models/plant1.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "rockpstr",
+      "model": "models/rock_poster.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "fractal",
+      "model": "models/fractal_wallart.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "welcomepstr",
+      "model": "models/welcome_poster.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "abspnt",
+      "model": "models/painting.obj",
+      "format": "OBJ"
     }
   ],
   "textures": [
     {
       "id": "tf",
       "texture": "textures/Textures_Forniture.png"
+    },
+    {
+      "id": "tpnt",
+      "texture": "textures/red_paint.jpg"
     }
   ],
   "instances": [
@@ -615,6 +644,134 @@
             0.0,
             3.8,
             4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plant1",
+      "model": "plant1",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            5.5,
+            0.0,
+            7.5
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            2.0,
+            2.0,
+            2.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rockPoster",
+      "model": "rockpstr",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -5.9,
+            1.8,
+            5.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            90.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abstractPainting",
+      "model": "abspnt",
+      "texture": "tpnt",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.0,
+            0.5,
+            7.9
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            90.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fractalWallArt",
+      "model": "fractal",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            4.5,
+            2.0,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "welcomePoster",
+      "model": "welcomepstr",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            1.25,
+            2.0,
+            7.7
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -180.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            0.75,
+            0.75,
+            0.75
           ]
         }
       ]
