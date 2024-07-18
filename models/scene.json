@@ -232,6 +232,334 @@
           ]
         }
       ]
+    },
+    {
+      "id": "roof",
+      "model": "wall",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            0.0,
+            4.0,
+            0.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            90.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            5.0,
+            2.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "win1",
+      "model": "win",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            5.8,
+            2.5,
+            2.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -90.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "win2",
+      "model": "win",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            5.8,
+            2.5,
+            6.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -90.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "closet",
+      "model": "closet",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -1.0,
+            0.0,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "desk",
+      "model": "desk",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            5.5,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -90.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            2.0,
+            2.0,
+            2.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gdesk",
+      "model": "gdesk",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            3.0,
+            0.0,
+            0.7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gpouf",
+      "model": "gpouf",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            3.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            -180.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "door",
+      "model": "door",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -0.5,
+            0.0,
+            7.9
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            -1.0,
+            1.0,
+            -1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "model": "clk",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -5.9,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            90.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loungeChair",
+      "model": "lngchr",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -5.0,
+            0.0,
+            7.0
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            135.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tvTable",
+      "model": "tbl",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.0,
+            0.0,
+            7.5
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            180.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            1.5,
+            1.5,
+            1.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redColumn",
+      "model": "col",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            3.5,
+            2.0,
+            6.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            -1.0,
+            1.0,
+            -1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "towerBed",
+      "model": "bed",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -4.0,
+            0.0,
+            1.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "roofLamp",
+      "model": "rlamp",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            0.0,
+            3.8,
+            4.0
+          ]
+        }
+      ]
     }
   ]
 }
