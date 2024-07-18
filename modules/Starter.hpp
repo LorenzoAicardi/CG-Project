@@ -66,6 +66,18 @@ struct SwapChainSupportDetails {
 };
 
 
+enum CollisionType {
+    COLLECTIBLE = 0,
+    OBJECT = 1
+};
+
+struct BoundingBox {
+	glm::vec3 min;
+	glm::vec3 max;
+    CollisionType cType;
+};
+
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 									  const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
 									  const VkAllocationCallbacks *pAllocator,
@@ -218,14 +230,14 @@ class Model {
 public:
 	std::vector<Vert> vertices{};
 	std::vector<uint32_t> indices{};
-	void loadModelOBJ(std::string file, std::vector<tinyobj::material_t> *materials,
-					  bool load_material);
-	void loadModelGLTF(std::string file, bool encoded);
+	void loadModelOBJ(std::string file, std::vector<std::vector<glm::vec3>> &vecList);
+	void loadModelGLTF(std::string file, bool encoded,
+					   std::vector<std::vector<glm::vec3>> &vecList);
 	void createIndexBuffer();
 	void createVertexBuffer();
 
-	void init(BaseProject *bp, VertexDescriptor *VD, std::string file, ModelType MT,
-			  std::vector<tinyobj::material_t> *materials, bool load_material);
+	void init(BaseProject *bp, VertexDescriptor *VD, std::string file,
+			  ModelType MT, std::vector<std::vector<glm::vec3>> &vecList);
 	void initMesh(BaseProject *bp, VertexDescriptor *VD);
 	void cleanup();
 	void bind(VkCommandBuffer commandBuffer);
@@ -322,8 +334,6 @@ struct DescriptorSet {
 	void map(int currentImage, void *src, int size, int slot);
 };
 
-
-// MAIN !
 class BaseProject {
 	friend class VertexDescriptor;
 	template<class Vert>
@@ -395,6 +405,8 @@ protected:
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
+	std::vector<std::vector<glm::vec3>> vecList;
+	std::vector<BoundingBox> bbList;
 
 	class VendorID {
 	public:
@@ -1464,7 +1476,7 @@ protected:
 		if(result != VK_SUCCESS) {
 			PrintVkError(result);
 			throw std::runtime_error(
-				"failed to allocate vertex buffer memory!");
+			    "failed to allocate vertex buffer memory!");
 		}
 
 		vkBindBufferMemory(device, buffer, bufferMemory, 0);
@@ -1488,10 +1500,10 @@ protected:
 		std::array<VkDescriptorPoolSize, 2> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSizes[0].descriptorCount =
-			static_cast<uint32_t>(uniformBlocksInPool * swapChainImages.size());
+		    static_cast<uint32_t>(uniformBlocksInPool * swapChainImages.size());
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[1].descriptorCount =
-			static_cast<uint32_t>(texturesInPool * swapChainImages.size());
+		    static_cast<uint32_t>(texturesInPool * swapChainImages.size());
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1499,10 +1511,10 @@ protected:
 		;
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets =
-			static_cast<uint32_t>(setsInPool * swapChainImages.size());
+		    static_cast<uint32_t>(setsInPool * swapChainImages.size());
 
 		VkResult result =
-			vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+		    vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
 		if(result != VK_SUCCESS) {
 			PrintVkError(result);
 			throw std::runtime_error("failed to create descriptor pool!");
@@ -1521,7 +1533,7 @@ protected:
 		allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
 		VkResult result =
-			vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data());
+		    vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data());
 		if(result != VK_SUCCESS) {
 			PrintVkError(result);
 			throw std::runtime_error("failed to allocate command buffers!");
@@ -1530,12 +1542,12 @@ protected:
 		for(size_t i = 0; i < commandBuffers.size(); i++) {
 			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			beginInfo.flags = 0;				   // Optional
+			beginInfo.flags = 0;                   // Optional
 			beginInfo.pInheritanceInfo = nullptr;  // Optional
 
 			if(vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
 				throw std::runtime_error(
-					"failed to begin recording command buffer!");
+				    "failed to begin recording command buffer!");
 			}
 
 			VkRenderPassBeginInfo renderPassInfo{};
@@ -1550,11 +1562,11 @@ protected:
 			clearValues[1].depthStencil = {1.0f, 0};
 
 			renderPassInfo.clearValueCount =
-				static_cast<uint32_t>(clearValues.size());
+			    static_cast<uint32_t>(clearValues.size());
 			renderPassInfo.pClearValues = clearValues.data();
 
 			vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo,
-								 VK_SUBPASS_CONTENTS_INLINE);
+			                     VK_SUBPASS_CONTENTS_INLINE);
 
 
 			populateCommandBuffer(commandBuffers[i], i);
@@ -1583,17 +1595,17 @@ protected:
 
 		for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			VkResult result1 = vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-												 &imageAvailableSemaphores[i]);
+			                                     &imageAvailableSemaphores[i]);
 			VkResult result2 = vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-												 &renderFinishedSemaphores[i]);
+			                                     &renderFinishedSemaphores[i]);
 			VkResult result3 =
-				vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]);
+			    vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]);
 			if(result1 != VK_SUCCESS || result2 != VK_SUCCESS || result3 != VK_SUCCESS) {
 				PrintVkError(result1);
 				PrintVkError(result2);
 				PrintVkError(result3);
 				throw std::runtime_error(
-					"failed to create synchronization objects for a frame!!");
+				    "failed to create synchronization objects for a frame!!");
 			}
 		}
 	}
@@ -1613,8 +1625,8 @@ protected:
 		uint32_t imageIndex;
 
 		VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
-												imageAvailableSemaphores[currentFrame],
-												VK_NULL_HANDLE, &imageIndex);
+		                                        imageAvailableSemaphores[currentFrame],
+		                                        VK_NULL_HANDLE, &imageIndex);
 
 		if(result == VK_ERROR_OUT_OF_DATE_KHR) {
 			recreateSwapChain();
@@ -1646,7 +1658,7 @@ protected:
 		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 		if(vkQueueSubmit(graphicsQueue, 1, &submitInfo,
-						 inFlightFences[currentFrame]) != VK_SUCCESS) {
+		                 inFlightFences[currentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -1659,7 +1671,7 @@ protected:
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &imageIndex;
-		presentInfo.pResults = nullptr;	 // Optional
+		presentInfo.pResults = nullptr;  // Optional
 
 		result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
@@ -1719,8 +1731,8 @@ protected:
 		}
 
 		vkFreeCommandBuffers(device, commandPool,
-							 static_cast<uint32_t>(commandBuffers.size()),
-							 commandBuffers.data());
+		                     static_cast<uint32_t>(commandBuffers.size()),
+		                     commandBuffers.data());
 
 		pipelinesAndDescriptorSetsCleanup();
 
@@ -1792,7 +1804,7 @@ protected:
 				r.z += state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] ? 1.0f : 0.0f;
 				r.z -= state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] ? 1.0f : 0.0f;
 				fire = fire | (bool)state.buttons[GLFW_GAMEPAD_BUTTON_A] |
-					   (bool)state.buttons[GLFW_GAMEPAD_BUTTON_B];
+				       (bool)state.buttons[GLFW_GAMEPAD_BUTTON_B];
 			}
 		}
 	}
@@ -1803,8 +1815,8 @@ protected:
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time =
-			std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime)
-				.count();
+		    std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime)
+		        .count();
 		deltaT = time - lastTime;
 		lastTime = time;
 
@@ -1862,7 +1874,7 @@ protected:
 		}
 
 		fire = glfwGetKey(window, GLFW_KEY_SPACE) |
-			   glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+		       glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
 		handleGamePad(GLFW_JOYSTICK_1, m, r, fire);
 		handleGamePad(GLFW_JOYSTICK_2, m, r, fire);
 		handleGamePad(GLFW_JOYSTICK_3, m, r, fire);
@@ -1878,15 +1890,15 @@ public:
 	}
 	void printVec2(const char *Name, glm::vec2 v) {
 		std::cout << "glm::vec3 " << Name << " = glm::vec3(" << v[0] << ", "
-				  << v[1] << ");\n";
+		          << v[1] << ");\n";
 	}
 	void printVec3(const char *Name, glm::vec3 v) {
 		std::cout << "glm::vec3 " << Name << " = glm::vec3(" << v[0] << ", "
-				  << v[1] << ", " << v[2] << ");\n";
+		          << v[1] << ", " << v[2] << ");\n";
 	}
 	void printVec4(const char *Name, glm::vec4 v) {
 		std::cout << "glm::vec4 " << Name << " = glm::vec4(" << v[0] << ", "
-				  << v[1] << ", " << v[2] << ", " << v[3] << ");\n";
+		          << v[1] << ", " << v[2] << ", " << v[3] << ");\n";
 	}
 	void printMat3(const char *Name, glm::mat3 v) {
 		std::cout << "glm::mat3 " << Name << " = glm::mat3(";
@@ -1905,8 +1917,8 @@ public:
 
 // Helper classes
 void VertexDescriptor::init(BaseProject *bp,
-							std::vector<VertexBindingDescriptorElement> B,
-							std::vector<VertexDescriptorElement> E) {
+                            std::vector<VertexBindingDescriptorElement> B,
+                            std::vector<VertexDescriptorElement> E) {
 	BP = bp;
 	Bindings = B;
 	Layout = E;
@@ -1922,8 +1934,8 @@ void VertexDescriptor::init(BaseProject *bp,
 	Tangent.hasIt = false;
 	Tangent.offset = 0;
 
-	if(B.size() == 1) {	 // for now, read models only with every vertex
-						 // information in a single binding
+	if(B.size() == 1) {  // for now, read models only with every vertex
+		                 // information in a single binding
 		for(int i = 0; i < E.size(); i++) {
 			switch(E[i].usage) {
 				case VertexDescriptorElementUsage::POSITION:
@@ -1991,7 +2003,7 @@ void VertexDescriptor::init(BaseProject *bp,
 		}
 	} else {
 		throw std::runtime_error(
-			"Vertex format with more than one binding is not supported yet\n");
+		    "Vertex format with more than one binding is not supported yet\n");
 	}
 }
 
@@ -2024,22 +2036,15 @@ std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDes
 
 template<class Vert>
 void Model<Vert>::loadModelOBJ(std::string file,
-							   std::vector<tinyobj::material_t> *materials,
-							   bool load_material) {
+							   std::vector<std::vector<glm::vec3>> &vecList) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
 	std::string warn, err;
-	if(load_material == false) {
-		std::vector<tinyobj::material_t> mat;
-		std::cout << "Loading : " << file << "[OBJ]\n";
-		if(!tinyobj::LoadObj(&attrib, &shapes, &mat, &warn, &err, file.c_str())) {
-			throw std::runtime_error(warn + err);
-		}
-	} else {
-		std::cout << "Loading : " << file << "[OBJ]\n";
-		if(!tinyobj::LoadObj(&attrib, &shapes, materials, &warn, &err, file.c_str())) {
-			throw std::runtime_error(warn + err);
-		}
+
+	std::cout << "Loading : " << file << "[OBJ]\n";
+	if(!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, file.c_str())) {
+		throw std::runtime_error(warn + err);
 	}
 
 	std::cout << "Building\n";
@@ -2052,31 +2057,31 @@ void Model<Vert>::loadModelOBJ(std::string file,
 		for(const auto &index : shape.mesh.indices) {
 			Vert vertex{};
 			glm::vec3 pos = {attrib.vertices[3 * index.vertex_index + 0],
-							 attrib.vertices[3 * index.vertex_index + 1],
-							 attrib.vertices[3 * index.vertex_index + 2]};
+			                 attrib.vertices[3 * index.vertex_index + 1],
+			                 attrib.vertices[3 * index.vertex_index + 2]};
 			if(VD->Position.hasIt) {
 				glm::vec3 *o = (glm::vec3 *)((char *)(&vertex) + VD->Position.offset);
 				*o = pos;
 			}
 
 			glm::vec3 color = {attrib.colors[3 * index.vertex_index + 0],
-							   attrib.colors[3 * index.vertex_index + 1],
-							   attrib.colors[3 * index.vertex_index + 2]};
+			                   attrib.colors[3 * index.vertex_index + 1],
+			                   attrib.colors[3 * index.vertex_index + 2]};
 			if(VD->Color.hasIt) {
 				glm::vec3 *o = (glm::vec3 *)((char *)(&vertex) + VD->Color.offset);
 				*o = color;
 			}
 
 			glm::vec2 texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
-								  1 - attrib.texcoords[2 * index.texcoord_index + 1]};
+			                      1 - attrib.texcoords[2 * index.texcoord_index + 1]};
 			if(VD->UV.hasIt) {
 				glm::vec2 *o = (glm::vec2 *)((char *)(&vertex) + VD->UV.offset);
 				*o = texCoord;
 			}
 
 			glm::vec3 norm = {attrib.normals[3 * index.normal_index + 0],
-							  attrib.normals[3 * index.normal_index + 1],
-							  attrib.normals[3 * index.normal_index + 2]};
+			                  attrib.normals[3 * index.normal_index + 1],
+			                  attrib.normals[3 * index.normal_index + 2]};
 			if(VD->Normal.hasIt) {
 				glm::vec3 *o = (glm::vec3 *)((char *)(&vertex) + VD->Normal.offset);
 				*o = norm;
@@ -2088,10 +2093,23 @@ void Model<Vert>::loadModelOBJ(std::string file,
 	}
 	std::cout << "[OBJ] Vertices: " << vertices.size() << "\n";
 	std::cout << "Indices: " << indices.size() << "\n";
+
+	std::vector<glm::vec3> itemVertices;
+	// Derive bounding box
+	for(const auto &shape : shapes) {
+		for(const auto &i : shape.mesh.indices) {
+			glm::vec3 vertex = glm::vec3(attrib.vertices[3 * i.vertex_index + 0],
+										 attrib.vertices[3 * i.vertex_index + 1],
+										 attrib.vertices[3 * i.vertex_index + 2]);
+			itemVertices.push_back(vertex);
+		}
+		vecList.push_back(itemVertices);
+	}
 }
 
 template<class Vert>
-void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
+void Model<Vert>::loadModelGLTF(std::string file, bool encoded,
+								std::vector<std::vector<glm::vec3>> &vecList) {
 	tinygltf::Model model;
 	tinygltf::TinyGLTF loader;
 	std::string warn, err;
@@ -2165,17 +2183,17 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 			if(pIt != primitive.attributes.end()) {
 				const tinygltf::Accessor &posAccessor = model.accessors[pIt->second];
 				const tinygltf::BufferView &posView =
-					model.bufferViews[posAccessor.bufferView];
+				    model.bufferViews[posAccessor.bufferView];
 				bufferPos = reinterpret_cast<const float *>(
-					&(model.buffers[posView.buffer]
-						  .data[posAccessor.byteOffset + posView.byteOffset]));
+				    &(model.buffers[posView.buffer]
+				          .data[posAccessor.byteOffset + posView.byteOffset]));
 				meshHasPos = true;
 				cntPos = posAccessor.count;
 				if(cntPos > cntTot) cntTot = cntPos;
 			} else {
 				if(VD->Position.hasIt) {
 					std::cout << "Warning: vertex layout has position, but "
-								 "file hasn't\n";
+					             "file hasn't\n";
 				}
 			}
 
@@ -2183,17 +2201,17 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 			if(nIt != primitive.attributes.end()) {
 				const tinygltf::Accessor &normAccessor = model.accessors[nIt->second];
 				const tinygltf::BufferView &normView =
-					model.bufferViews[normAccessor.bufferView];
+				    model.bufferViews[normAccessor.bufferView];
 				bufferNormals = reinterpret_cast<const float *>(
-					&(model.buffers[normView.buffer]
-						  .data[normAccessor.byteOffset + normView.byteOffset]));
+				    &(model.buffers[normView.buffer]
+				          .data[normAccessor.byteOffset + normView.byteOffset]));
 				meshHasNorm = true;
 				cntNorm = normAccessor.count;
 				if(cntNorm > cntTot) cntTot = cntNorm;
 			} else {
 				if(VD->Normal.hasIt) {
 					std::cout << "Warning: vertex layout has normal, but file "
-								 "hasn't\n";
+					             "hasn't\n";
 				}
 			}
 
@@ -2201,10 +2219,10 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 			if(tIt != primitive.attributes.end()) {
 				const tinygltf::Accessor &tanAccessor = model.accessors[tIt->second];
 				const tinygltf::BufferView &tanView =
-					model.bufferViews[tanAccessor.bufferView];
+				    model.bufferViews[tanAccessor.bufferView];
 				bufferTangents = reinterpret_cast<const float *>(
-					&(model.buffers[tanView.buffer]
-						  .data[tanAccessor.byteOffset + tanView.byteOffset]));
+				    &(model.buffers[tanView.buffer]
+				          .data[tanAccessor.byteOffset + tanView.byteOffset]));
 				meshHasTan = true;
 				cntTan = tanAccessor.count;
 				if(cntTan > cntTot) cntTot = cntTan;
@@ -2233,6 +2251,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 				}
 			}
 
+			std::vector<glm::vec3> itemVertices;
 			for(int i = 0; i < cntTot; i++) {
 				Vert vertex{};
 
@@ -2242,6 +2261,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 					glm::vec3 *o =
 						(glm::vec3 *)((char *)(&vertex) + VD->Position.offset);
 					*o = pos;
+					itemVertices.push_back(pos);
 				}
 
 				if((i < cntNorm) && meshHasNorm && VD->Normal.hasIt) {
@@ -2272,6 +2292,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 
 				vertices.push_back(vertex);
 			}
+			vecList.push_back(itemVertices);
 
 			const tinygltf::Accessor &accessor = model.accessors[primitive.indices];
 			const tinygltf::BufferView &bufferView =
@@ -2304,6 +2325,44 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded) {
 	std::cout << "\t" << (encoded ? "[MGCG]" : "[GLTF]")
 			  << " Vertices: " << vertices.size()
 			  << "\n\tIndices: " << indices.size() << "\n";
+
+	/*
+	for(const auto &mesh : model.meshes) {
+
+		for(const auto &primitive : mesh.primitives) {
+			const float *bufferPos = nullptr;
+			bool meshHasPos = false;
+			int cntPos = 0;
+
+			auto pIt = primitive.attributes.find("POSITION");
+			if(pIt != primitive.attributes.end()) {
+				const tinygltf::Accessor &posAccessor =
+	model.accessors[pIt->second]; const tinygltf::BufferView &posView =
+					model.bufferViews[posAccessor.bufferView];
+				bufferPos = reinterpret_cast<const float *>(
+					&(model.buffers[posView.buffer]
+						  .data[posAccessor.byteOffset + posView.byteOffset]));
+				meshHasPos = true;
+				cntPos = posAccessor.count;
+			} else {
+				if(VD->Position.hasIt) {
+					std::cout << "Warning: vertex layout has position, but "
+								 "file hasn't\n";
+				}
+			}
+
+			// Add vertices to sublist
+			std::vector<glm::vec3> itemVertices;
+			for(int i = 0; i < cntPos; i++) {
+				glm::vec3 vertex =
+					glm::vec3(bufferPos[3 * i + 0], bufferPos[3 * i + 1],
+							  bufferPos[3 * i + 2]);
+				itemVertices.push_back(vertex);
+			}
+			vecList.push_back(itemVertices);
+		}
+	}
+	*/
 }
 
 template<class Vert>
@@ -2341,23 +2400,22 @@ void Model<Vert>::initMesh(BaseProject *bp, VertexDescriptor *vd) {
 	BP = bp;
 	VD = vd;
 	std::cout << "[Manual] Vertices: " << vertices.size()
-			  << "\nIndices: " << indices.size() << "\n";
+	          << "\nIndices: " << indices.size() << "\n";
 	createVertexBuffer();
 	createIndexBuffer();
 }
 
 template<class Vert>
 void Model<Vert>::init(BaseProject *bp, VertexDescriptor *vd, std::string file,
-					   ModelType MT, std::vector<tinyobj::material_t> *materials,
-					   bool load_material) {
+					   ModelType MT, std::vector<std::vector<glm::vec3>> &vecList) {
 	BP = bp;
 	VD = vd;
 	if(MT == OBJ) {
-		loadModelOBJ(file, materials, load_material);
+		loadModelOBJ(file, vecList);
 	} else if(MT == GLTF) {
-		loadModelGLTF(file, false);
+		loadModelGLTF(file, false, vecList);
 	} else if(MT == MGCG) {
-		loadModelGLTF(file, true);
+		loadModelGLTF(file, true, vecList);
 	}
 
 	createVertexBuffer();
@@ -2417,37 +2475,37 @@ void Texture::createTextureImage(const char *const files[],
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	VkDeviceSize totalImageSize = texWidth * texHeight * 4 * imgs;
 	mipLevels =
-		static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+	    static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 
 	BP->createBuffer(totalImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-					 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-						 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-					 stagingBuffer, stagingBufferMemory);
+	                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+	                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+	                 stagingBuffer, stagingBufferMemory);
 	void *data;
 	vkMapMemory(BP->device, stagingBufferMemory, 0, totalImageSize, 0, &data);
 	for(int i = 0; i < imgs; i++) {
 		memcpy(static_cast<char *>(data) + imageSize * i, pixels[i],
-			   static_cast<size_t>(imageSize));
+		       static_cast<size_t>(imageSize));
 		stbi_image_free(pixels[i]);
 	}
 	vkUnmapMemory(BP->device, stagingBufferMemory);
 
 
 	BP->createImage(texWidth, texHeight, mipLevels, imgs, VK_SAMPLE_COUNT_1_BIT,
-					Fmt, VK_IMAGE_TILING_OPTIMAL,
-					VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-						VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-					imgs == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
-					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage,
-					textureImageMemory);
+	                Fmt, VK_IMAGE_TILING_OPTIMAL,
+	                VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+	                    VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+	                imgs == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
+	                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage,
+	                textureImageMemory);
 
 	BP->transitionImageLayout(textureImage, Fmt, VK_IMAGE_LAYOUT_UNDEFINED,
-							  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, imgs);
+	                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, imgs);
 	BP->copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth),
-						  static_cast<uint32_t>(texHeight), imgs);
+	                      static_cast<uint32_t>(texHeight), imgs);
 
 	BP->generateMipmaps(textureImage, Fmt, texWidth, texHeight, mipLevels, imgs);
 
@@ -2457,17 +2515,17 @@ void Texture::createTextureImage(const char *const files[],
 
 void Texture::createTextureImageView(VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
 	textureImageView =
-		BP->createImageView(textureImage, Fmt, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels,
-							imgs == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
-							imgs);
+	    BP->createImageView(textureImage, Fmt, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels,
+	                        imgs == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
+	                        imgs);
 }
 
 void Texture::createTextureSampler(
-	VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR,
-	VkSamplerAddressMode addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-	VkSamplerAddressMode addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-	VkSamplerMipmapMode mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-	VkBool32 anisotropyEnable = VK_TRUE, float maxAnisotropy = 16, float maxLod = -1) {
+    VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR,
+    VkSamplerAddressMode addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    VkSamplerAddressMode addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    VkSamplerMipmapMode mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+    VkBool32 anisotropyEnable = VK_TRUE, float maxAnisotropy = 16, float maxLod = -1) {
 	VkSamplerCreateInfo samplerInfo{};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	samplerInfo.magFilter = magFilter;
@@ -2487,7 +2545,7 @@ void Texture::createTextureSampler(
 	samplerInfo.maxLod = ((maxLod == -1) ? static_cast<float>(mipLevels) : maxLod);
 
 	VkResult result =
-		vkCreateSampler(BP->device, &samplerInfo, nullptr, &textureSampler);
+	    vkCreateSampler(BP->device, &samplerInfo, nullptr, &textureSampler);
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to create texture sampler!");
@@ -2496,7 +2554,7 @@ void Texture::createTextureSampler(
 
 
 void Texture::init(BaseProject *bp, const char *file,
-				   VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB, bool initSampler = true) {
+                   VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB, bool initSampler = true) {
 	const char *files[1] = {file};
 	BP = bp;
 	imgs = 1;
@@ -2526,8 +2584,8 @@ void Texture::cleanup() {
 
 
 void Pipeline::init(BaseProject *bp, VertexDescriptor *vd,
-					const std::string &VertShader, const std::string &FragShader,
-					std::vector<DescriptorSetLayout *> d) {
+                    const std::string &VertShader, const std::string &FragShader,
+                    std::vector<DescriptorSetLayout *> d) {
 	BP = bp;
 	VD = vd;
 
@@ -2535,9 +2593,9 @@ void Pipeline::init(BaseProject *bp, VertexDescriptor *vd,
 	auto vertShaderCode = readFile(VertShader);
 	auto fragShaderCode = readFile(FragShader);
 	std::cout << "Vertex shader <" << VertShader
-			  << "> len: " << vertShaderCode.size() << "\n";
+	          << "> len: " << vertShaderCode.size() << "\n";
 	std::cout << "Fragment shader <" << FragShader
-			  << "> len: " << fragShaderCode.size() << "\n";
+	          << "> len: " << fragShaderCode.size() << "\n";
 
 	vertShaderModule = createShaderModule(vertShaderCode);
 	fragShaderModule = createShaderModule(fragShaderCode);
@@ -2551,7 +2609,7 @@ void Pipeline::init(BaseProject *bp, VertexDescriptor *vd,
 }
 
 void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp, VkPolygonMode _polyModel,
-								   VkCullModeFlagBits _CM, bool _transp) {
+                                   VkCullModeFlagBits _CM, bool _transp) {
 	compareOp = _compareOp;
 	polyModel = _polyModel;
 	CM = _CM;
@@ -2573,7 +2631,7 @@ void Pipeline::create() {
 	fragShaderStageInfo.pName = "main";
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo,
-													  fragShaderStageInfo};
+	                                                  fragShaderStageInfo};
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -2581,9 +2639,9 @@ void Pipeline::create() {
 	auto attributeDescriptions = VD->getAttributeDescriptions();
 
 	vertexInputInfo.vertexBindingDescriptionCount =
-		static_cast<uint32_t>(bindingDescription.size());
+	    static_cast<uint32_t>(bindingDescription.size());
 	vertexInputInfo.vertexAttributeDescriptionCount =
-		static_cast<uint32_t>(attributeDescriptions.size());
+	    static_cast<uint32_t>(attributeDescriptions.size());
 	vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
@@ -2620,30 +2678,30 @@ void Pipeline::create() {
 	rasterizer.cullMode = CM;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	// Optional
-	rasterizer.depthBiasClamp = 0.0f;			// Optional
-	rasterizer.depthBiasSlopeFactor = 0.0f;		// Optional
+	rasterizer.depthBiasConstantFactor = 0.0f;  // Optional
+	rasterizer.depthBiasClamp = 0.0f;           // Optional
+	rasterizer.depthBiasSlopeFactor = 0.0f;     // Optional
 
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_TRUE;
 	multisampling.rasterizationSamples = BP->msaaSamples;
-	multisampling.minSampleShading = 1.0f;			 // Optional
-	multisampling.pSampleMask = nullptr;			 // Optional
-	multisampling.alphaToCoverageEnable = VK_FALSE;	 // Optional
-	multisampling.alphaToOneEnable = VK_FALSE;		 // Optional
+	multisampling.minSampleShading = 1.0f;           // Optional
+	multisampling.pSampleMask = nullptr;             // Optional
+	multisampling.alphaToCoverageEnable = VK_FALSE;  // Optional
+	multisampling.alphaToOneEnable = VK_FALSE;       // Optional
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.colorWriteMask =
-		VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	    VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+	    VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachment.blendEnable = transp ? VK_TRUE : VK_FALSE;
 	colorBlendAttachment.srcColorBlendFactor =
-		transp ? VK_BLEND_FACTOR_SRC_ALPHA : VK_BLEND_FACTOR_ONE;
+	    transp ? VK_BLEND_FACTOR_SRC_ALPHA : VK_BLEND_FACTOR_ONE;
 	colorBlendAttachment.dstColorBlendFactor =
-		transp ? VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA : VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;			 // Optional
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;	 // Optional
+	    transp ? VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA : VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;             // Optional
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;  // Optional
 
@@ -2653,10 +2711,10 @@ void Pipeline::create() {
 	colorBlending.logicOp = VK_LOGIC_OP_COPY;  // Optional
 	colorBlending.attachmentCount = 1;
 	colorBlending.pAttachments = &colorBlendAttachment;
-	colorBlending.blendConstants[0] = 0.0f;	 // Optional
-	colorBlending.blendConstants[1] = 0.0f;	 // Optional
-	colorBlending.blendConstants[2] = 0.0f;	 // Optional
-	colorBlending.blendConstants[3] = 0.0f;	 // Optional
+	colorBlending.blendConstants[0] = 0.0f;  // Optional
+	colorBlending.blendConstants[1] = 0.0f;  // Optional
+	colorBlending.blendConstants[2] = 0.0f;  // Optional
+	colorBlending.blendConstants[3] = 0.0f;  // Optional
 
 	std::vector<VkDescriptorSetLayout> DSL(D.size());
 	for(int i = 0; i < D.size(); i++) {
@@ -2667,11 +2725,11 @@ void Pipeline::create() {
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = DSL.size();
 	pipelineLayoutInfo.pSetLayouts = DSL.data();
-	pipelineLayoutInfo.pushConstantRangeCount = 0;	   // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 0;     // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;  // Optional
 
 	VkResult result = vkCreatePipelineLayout(BP->device, &pipelineLayoutInfo,
-											 nullptr, &pipelineLayout);
+	                                         nullptr, &pipelineLayout);
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to create pipeline layout!");
@@ -2683,11 +2741,11 @@ void Pipeline::create() {
 	depthStencil.depthWriteEnable = VK_TRUE;
 	depthStencil.depthCompareOp = compareOp;
 	depthStencil.depthBoundsTestEnable = VK_FALSE;
-	depthStencil.minDepthBounds = 0.0f;	 // Optional
-	depthStencil.maxDepthBounds = 1.0f;	 // Optional
+	depthStencil.minDepthBounds = 0.0f;  // Optional
+	depthStencil.maxDepthBounds = 1.0f;  // Optional
 	depthStencil.stencilTestEnable = VK_FALSE;
 	depthStencil.front = {};  // Optional
-	depthStencil.back = {};	  // Optional
+	depthStencil.back = {};   // Optional
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -2705,10 +2763,10 @@ void Pipeline::create() {
 	pipelineInfo.renderPass = BP->renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;  // Optional
-	pipelineInfo.basePipelineIndex = -1;			   // Optional
+	pipelineInfo.basePipelineIndex = -1;               // Optional
 
 	result = vkCreateGraphicsPipelines(BP->device, VK_NULL_HANDLE, 1,
-									   &pipelineInfo, nullptr, &graphicsPipeline);
+	                                   &pipelineInfo, nullptr, &graphicsPipeline);
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to create graphics pipeline!");
@@ -2733,7 +2791,7 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
 	VkShaderModule shaderModule;
 
 	VkResult result =
-		vkCreateShaderModule(BP->device, &createInfo, nullptr, &shaderModule);
+	    vkCreateShaderModule(BP->device, &createInfo, nullptr, &shaderModule);
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to create shader module!");
@@ -2748,7 +2806,7 @@ void Pipeline::cleanup() {
 }
 
 void DescriptorSetLayout::init(BaseProject *bp,
-							   std::vector<DescriptorSetLayoutBinding> B) {
+                               std::vector<DescriptorSetLayoutBinding> B) {
 	BP = bp;
 
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -2768,7 +2826,7 @@ void DescriptorSetLayout::init(BaseProject *bp,
 	layoutInfo.pBindings = bindings.data();
 
 	VkResult result = vkCreateDescriptorSetLayout(BP->device, &layoutInfo,
-												  nullptr, &descriptorSetLayout);
+	                                              nullptr, &descriptorSetLayout);
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to create descriptor set layout!");
@@ -2780,7 +2838,7 @@ void DescriptorSetLayout::cleanup() {
 }
 
 void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
-						 std::vector<DescriptorSetElement> E) {
+                         std::vector<DescriptorSetElement> E) {
 	BP = bp;
 
 	uniformBuffers.resize(E.size());
@@ -2794,9 +2852,9 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 			for(size_t i = 0; i < BP->swapChainImages.size(); i++) {
 				VkDeviceSize bufferSize = E[j].size;
 				BP->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-									 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								 uniformBuffers[j][i], uniformBuffersMemory[j][i]);
+				                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+				                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				                 uniformBuffers[j][i], uniformBuffersMemory[j][i]);
 			}
 			toFree[j] = true;
 		} else {
@@ -2805,7 +2863,7 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 	}
 
 	std::vector<VkDescriptorSetLayout> layouts(BP->swapChainImages.size(),
-											   DSL->descriptorSetLayout);
+	                                           DSL->descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = BP->descriptorPool;
@@ -2815,7 +2873,7 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 	descriptorSets.resize(BP->swapChainImages.size());
 
 	VkResult result =
-		vkAllocateDescriptorSets(BP->device, &allocInfo, descriptorSets.data());
+	    vkAllocateDescriptorSets(BP->device, &allocInfo, descriptorSets.data());
 	if(result != VK_SUCCESS) {
 		PrintVkError(result);
 		throw std::runtime_error("failed to allocate descriptor sets!");
@@ -2848,14 +2906,14 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 				descriptorWrites[j].dstBinding = E[j].binding;
 				descriptorWrites[j].dstArrayElement = 0;
 				descriptorWrites[j].descriptorType =
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				descriptorWrites[j].descriptorCount = 1;
 				descriptorWrites[j].pImageInfo = &imageInfo[j];
 			}
 		}
 		vkUpdateDescriptorSets(BP->device,
-							   static_cast<uint32_t>(descriptorWrites.size()),
-							   descriptorWrites.data(), 0, nullptr);
+		                       static_cast<uint32_t>(descriptorWrites.size()),
+		                       descriptorWrites.data(), 0, nullptr);
 	}
 }
 
@@ -2871,10 +2929,10 @@ void DescriptorSet::cleanup() {
 }
 
 void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline &P, int setId,
-						 int currentImage) {
+                         int currentImage) {
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							P.pipelineLayout, setId, 1,
-							&descriptorSets[currentImage], 0, nullptr);
+	                        P.pipelineLayout, setId, 1,
+	                        &descriptorSets[currentImage], 0, nullptr);
 }
 
 void DescriptorSet::map(int currentImage, void *src, int size, int slot) {
