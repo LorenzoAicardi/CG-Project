@@ -88,6 +88,16 @@
       "id": "rlamp",
       "model": "models/roof_lamp.mgcg",
       "format": "MGCG"
+    },
+    {
+      "id": "tv",
+      "model": "models/tv.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "hdphn",
+      "model": "models/headphones.mgcg",
+      "format": "MGCG"
     }
   ],
   "textures": [
@@ -501,6 +511,54 @@
             1.5,
             1.5,
             1.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "television",
+      "model": "tv",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.3,
+            0.425,
+            7.5
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            180.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headphones",
+      "model": "hdphn",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.2,
+            0.17,
+            7.5
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            195.0,
+            0.0
           ]
         }
       ]
