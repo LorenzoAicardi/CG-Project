@@ -20,11 +20,6 @@
   ],
   "models": [
     {
-      "id": "rkt",
-      "model": "models/rotrocketypositive.obj",
-      "format": "OBJ"
-    },
-    {
       "id": "wall",
       "model": "models/blue_wall.mgcg",
       "format": "MGCG"
@@ -111,9 +106,9 @@
         {
           "type": "translate",
           "vec": [
-            10.0,
-            10.0,
-            10.0
+            0.0,
+            0.0,
+            0.0
           ]
         },
         {
@@ -135,9 +130,9 @@
         {
           "type": "translate",
           "vec": [
-            16.0,
-            10.0,
-            14.0
+            6.0,
+            0.0,
+            4.0
           ]
         },
         {
@@ -167,9 +162,9 @@
         {
           "type": "translate",
           "vec": [
-            10.0,
-            10.0,
-            18.0
+            0.0,
+            0.0,
+            8.0
           ]
         },
         {
@@ -191,9 +186,9 @@
         {
           "type": "translate",
           "vec": [
-            4.0,
-            10.0,
-            14.0
+            -6.0,
+            0.0,
+            4.0
           ]
         },
         {
@@ -223,9 +218,9 @@
         {
           "type": "translate",
           "vec": [
-            10.0,
-            10.0,
-            14.0
+            0.0,
+            0.0,
+            4.0
           ]
         },
         {
