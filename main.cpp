@@ -52,8 +52,8 @@ protected:
 	VertexDescriptor VD;
 
 	// Pipelines [Shader couples]
-	/// Lambert+Blinn
-	Pipeline PBlinn;
+	/// Lambert diffuse + Cook-Torrance specular
+	Pipeline PCookTorrance;
 	/// self-emissive objects (e.g. lamps)
 	Pipeline PEmission;
 
@@ -84,9 +84,9 @@ protected:
 
 		// Descriptor pool sizes
 		SC.countResources("models/scene.json");
-		uniformBlocksInPool = SC.resCtr.uboInPool + 10;
-		texturesInPool = SC.resCtr.textureInPool + 10;
-		setsInPool = SC.resCtr.dsInPool + 10;
+		uniformBlocksInPool = SC.resCtr.uboInPool + 20;
+		texturesInPool = SC.resCtr.textureInPool + 20;
+		setsInPool = SC.resCtr.dsInPool + 20;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -110,38 +110,42 @@ protected:
 				  sizeof(glm::vec2), UV}});
 
 		// Init pipelines
-		PBlinn.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-					"shaders/LambertBlinnShaderFrag.spv",
-					{SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+		PCookTorrance.init(this, &VD, "shaders/CookTorranceShaderVert.spv",
+						   "shaders/CookTorranceShaderFrag.spv",
+						   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 
 		// Init scene (models & textures)
-		SC.init(this, &VD, PBlinn, "models/scene.json");
+		SC.init(this, &VD, PCookTorrance, "models/scene.json");
 		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ, SC.vecList);
 
 		// Init local variables
 	}
 
 	void pipelinesAndDescriptorSetsInit() override {
-		PBlinn.create();
+		PCookTorrance.create();
 		PEmission.create();
 
-		std::vector<DescriptorSetElement> bindings =
-			{{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-			 {1, TEXTURE, 0, SC.T[0]},
-			 {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+		std::unordered_map<std::string, std::vector<DescriptorSetElement>> bindings;
+		bindings["default"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+							   {1, TEXTURE, 0, SC.T[0]},
+							   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+		bindings["abstractPainting"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+										{1, TEXTURE, 0, SC.T[1]},
+										{2, UNIFORM,
+										 sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, SC.DSL[SC.LayoutIds["DSLGlobal"]], bindings);
+		DSRocket.init(this, SC.DSL[SC.LayoutIds["DSLGlobal"]], bindings["default"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
 	// All the object classes defined in Starter.hpp have a method .cleanup() for this purpose
 	void pipelinesAndDescriptorSetsCleanup() override {
 		// cleanup pipelines
-		PBlinn.cleanup();
+		PCookTorrance.cleanup();
 		PEmission.cleanup();
 
 		// cleanup descriptor sets
@@ -159,7 +163,7 @@ protected:
 		MRocket.cleanup();
 
 		// Destroys the pipelines
-		PBlinn.destroy();
+		PCookTorrance.destroy();
 		PEmission.destroy();
 	}
 
@@ -168,14 +172,14 @@ protected:
 	// with their buffers and textures
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) override {
 		// binds the pipeline
-		PBlinn.bind(commandBuffer);
+		PCookTorrance.bind(commandBuffer);
 		// for a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 
 		// binds the data sets
-		SC.populateCommandBuffer(commandBuffer, currentImage, PBlinn);
+		SC.populateCommandBuffer(commandBuffer, currentImage, PCookTorrance);
 
 		MRocket.bind(commandBuffer);
-		DSRocket.bind(commandBuffer, PBlinn, 0, currentImage);
+		DSRocket.bind(commandBuffer, PCookTorrance, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}

@@ -262,10 +262,17 @@ public:
 		}
 	}
 
-	void pipelinesAndDescriptorSetsInit(std::vector<DescriptorSetElement> dsInst) {
-		for(int i = 0; i < InstanceCount; i++) {
+	void pipelinesAndDescriptorSetsInit(
+		std::unordered_map<std::string, std::vector<DescriptorSetElement>> dsInst) {
+		// Assumed to always exist
+		auto defaultBinding = dsInst["default"];
+		for(auto inst : InstanceIds) {
+			int i = inst.second;
 			DS[i] = new DescriptorSet();
-			DS[i]->init(BP, DSL[I[i].DSLid], dsInst);
+			if(dsInst.find(inst.first) != dsInst.end())
+				DS[i]->init(BP, DSL[I[i].DSLid], dsInst[inst.first]);
+			else
+				DS[i]->init(BP, DSL[I[i].DSLid], defaultBinding);
 		}
 	}
 
