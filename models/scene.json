@@ -36,7 +36,7 @@
     },
     {
       "id": "bed",
-      "model": "models/tower_bed.mgcg",
+      "model": "models/hostel_bed.mgcg",
       "format": "MGCG"
     },
     {
@@ -627,7 +627,15 @@
           "vec": [
             -4.0,
             0.0,
-            1.0
+            0.8
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            1.5,
+            1.5,
+            1.5
           ]
         }
       ]
