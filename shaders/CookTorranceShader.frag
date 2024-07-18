@@ -21,6 +21,8 @@ layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
 
 layout(set = 0, binding = 1) uniform sampler2D tex;
 
+#define PI 3.14159
+
 vec3 directLightDir(vec3 pos, int i) {
     return normalize(gubo.lightDir[i]);
 }
@@ -35,20 +37,37 @@ vec3 pointLightDir(vec3 pos, int i) {
 
 vec3 pointLightColor(vec3 pos, int i) {
     float g = gubo.lightColor[i].a;
-    float beta = 2.0;
+    float beta = 1.0f;
     vec3 p = gubo.lightPos[i];
     return gubo.lightColor[i].rgb * pow(g / length(p-pos), beta);
 }
 
 /**
- * Compute BRDF following Lambert + Blinn models
+ * compute the g_ggx() value for the G term
+ * of Cook-Torrance GGX
  */
-vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 lightDir) {
-    float gamma = 200.0f;
-    vec3 diffuse = Albedo * 0.975f * max(dot(Norm, lightDir), 0.0);
-    vec3 specular = vec3(pow(max(dot(Norm, normalize(lightDir + EyeDir)), 0.0), gamma));
+float gGGX(float rho, vec3 n, vec3 a) {
+    float na2 = pow(dot(n, a), 2.0);
+    return 2 / (1 + sqrt(1 + (rho*rho*((1-na2)/na2))));
+}
 
-    return diffuse + specular;
+/**
+ * Compute BRDF following Cook-Torrance model
+ */
+vec3 BRDF(vec3 albedo, vec3 norm, vec3 eyeDir, vec3 lightDir) {
+    float rho = 0.5;
+    float F0 = 0.8;
+    float k = 0.6;
+
+    vec3 diffuse = albedo * max(dot(norm, lightDir), 0.0);
+
+    vec3 h = normalize(lightDir + eyeDir);
+    float D = (rho*rho) / PI * pow(pow(max(dot(norm, h), 0.0), 2) * (rho*rho - 1) + 1, 2);
+    float F = F0 + (1 - F0) * pow(1 - max(dot(eyeDir, h), 0.0), 5);
+    float G = gGGX(rho, norm, eyeDir) * gGGX(rho, norm, lightDir);
+    vec3 specular = vec3(D*F*G / 4*max(dot(eyeDir, norm), 0.0));
+
+    return k*diffuse + (1-k)*specular;
 }
 
 void main() {
