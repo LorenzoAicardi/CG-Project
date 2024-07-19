@@ -102,6 +102,32 @@ protected:
 
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
+    glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
+    glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    SphereCollider rocketCollider;
+    RocketState rocketState = FALLING;
+    glm::vec3 restingPosition;
+    const float MOVE_SPEED = 5.0f;
+    glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
+    glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
+    float verticalSpeed = 0.0f;
+    glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
+    float GRAVITY_CONSTANT = 0.1f;
+
+    glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
+    glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
+    glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
+    glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
+    glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
+    glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.5f);
+    glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
+    std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
+                                            BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
+                                            ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
+
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
@@ -132,6 +158,7 @@ protected:
 		MRocket.init(this, &VD, "models/rocket.obj", OBJ, "rocket", SC.vecMap);
 
 		// Init local variables
+        rocketCollider.radius = 0.05f;
 	}
 
 	void pipelinesAndDescriptorSetsInit() override {
@@ -204,34 +231,8 @@ protected:
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
 
-	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
-
-	glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
-	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
-
-	glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-
-	const float MOVE_SPEED = 0.5f;
-	glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
-	glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
-	float verticalSpeed = 0.0f;
-	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
-	float GRAVITY_CONSTANT = 2.0f;
-
-	SphereCollider rocketCollider;
-	RocketState rocketState = FALLING;
-	glm::vec3 restingPosition;
-
-	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
-	glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
-	glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
-	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.5f);
-	glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
-	std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
-											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
-											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
+    // Rocket
+    // restingPosition = glm::vec3(0.0f);
 
 	int coinLocation = 0;
 
@@ -277,6 +278,36 @@ protected:
 		}
 	}
 
+    void getDirection(){
+        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            rocketRotation.x -= 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            rocketRotation.x += 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            rocketRotation.y += 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            rocketRotation.y -= 1.0f;
+        }
+    }
+
+    void getCameraControls(){
+        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            rocketCameraRotation.y -= 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            rocketCameraRotation.y += 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            rocketCameraRotation.x -= 1.0f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            rocketCameraRotation.x += 1.0f;
+        }
+    }
+
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -302,17 +333,6 @@ protected:
 
 		glm::mat4 World;
 		glm::mat4 ViewPrj = Prj * View;
-
-		glm::vec4 homogeneousPoint;
-		// Rocket
-		World = glm::translate(glm::mat4(1.0f), rocketPosition);
-		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.02f, 0.02f, 0.02f));
-		RocketUbo.mvpMat = Prj * View * World;
-		rocketCollider.center = rocketPosition;
-		rocketCollider.radius = 0.05f;
-		restingPosition = glm::vec3(0.0f);
-
-		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 
 		// Update global uniforms
 		GlobalUniformBufferObject gubo{};
@@ -358,18 +378,15 @@ protected:
 			}
 		}
 
-		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			rocketRotation.x -= 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			rocketRotation.x += 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			rocketRotation.y += 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			rocketRotation.y -= 1.0f;
-		}
+        getDirection();
+
+        // Gravity (gravity constant can be lowered)
+        if(rocketState == FALLING) {  // If the rocket is falling apply gravity
+            verticalSpeed += GRAVITY_CONSTANT * deltaT;
+            // Set terminal fall speed
+            verticalSpeed = glm::max(verticalSpeed, 0.1f);
+        }
+
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
 			rocketDirection.z -= 1.0f;
 
@@ -383,64 +400,27 @@ protected:
 				glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
 			rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
-			// Cap maximum speed
 
+			// Cap maximum speed
 			if(glm::length(rocketSpeed) > 1.0f)
 				rocketSpeed = glm::normalize(rocketSpeed) * 1.0f;
-			// Acceleration towards maximum speed
 
+            // Acceleration towards maximum speed
 			rocketState = FALLING;
 			// Reset direction to avoid permanently going in the same direction
 			rocketDirection = {0, 0, 0};
 			// "Cancel" gravity while accelerating
 			verticalSpeed = 0.0f;
 
-			rocketPosition += rocketSpeed * deltaT;
+		}
+        /* else {
 
-			if(isCollision) {
-				switch(SC.bbMap[collisionId].cType) {
-					case OBJECT: {
-						// Compute the closest point on the AABB to the sphere center
-						glm::vec3 closestPoint =
-							glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
-									   SC.bbMap[collisionId].max);
-
-						// Calculate the normal of the collision surface
-						glm::vec3 difference = rocketPosition - closestPoint;
-						float distance = glm::length(difference);
-
-						glm::vec3 normal = glm::normalize(difference);
-
-						// Move the sphere out of collision along the normal
-						rocketPosition = closestPoint + normal * rocketCollider.radius;
-						// Adjust the sphere's velocity to slide along the AABB surface
-						float dotProduct = glm::dot(rocketSpeed, normal);
-						glm::vec3 correction = normal * dotProduct;
-						rocketSpeed -= correction;
-
-						break;
-					}
-					case COLLECTIBLE: {
-						coinLocation = (std::rand() % (4 - 0 + 1));
-						SC.bbMap.erase(collisionId);
-						break;
-					}
-				}
-			}
-		} else {
-			// Gravity (gravity constant can be lowered)
-			if(rocketState == FALLING) {  // If the rocket is falling apply gravity
-				verticalSpeed += GRAVITY_CONSTANT * deltaT;
-				// Set terminal fall speed
-				verticalSpeed = glm::max(verticalSpeed, 0.1f);
-				rocketPosition += rocketSpeed * deltaT;
-			}
 
 			if(!isCollision) {
 				if(rocketState == RESTING) {
 					rocketPosition = restingPosition;
 				} else {
-					rocketPosition.y -= verticalSpeed * deltaT;
+					// rocketPosition.y -= verticalSpeed * deltaT;
 					// Deceleration towards minimum speed (0)
 					if(glm::length(rocketSpeed) > 0.0f) {
 						float speed = glm::length(rocketSpeed);
@@ -450,8 +430,6 @@ protected:
 					}
 				}
 			} else {
-				std::cout << "Collision type: " << SC.bbMap[collisionId].cType
-						  << std::endl;
 				switch(SC.bbMap[collisionId].cType) {
 					case OBJECT: {
 						// Compute the closest point on the AABB to the sphere center
@@ -487,36 +465,63 @@ protected:
 						break;
 					}
 					case COLLECTIBLE: {
-						rocketPosition.y -= verticalSpeed * deltaT;
-						// Deceleration towards minimum speed (0)
-						if(glm::length(rocketSpeed) > 0.0f) {
-							float speed = glm::length(rocketSpeed);
-							speed -= MOVE_SPEED * deltaT;
-							speed = glm::max(speed, 0.0f);
-							rocketSpeed = glm::normalize(rocketSpeed) * speed;
-						}
-
 						coinLocation = (std::rand() % (4 - 0 + 1));
 						SC.bbMap.erase(collisionId);
 						break;
 					}
 				}
 			}
-		}
+		}*/
 
-		// Camera controls
-		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			rocketCameraRotation.y -= 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			rocketCameraRotation.y += 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			rocketCameraRotation.x -= 1.0f;
-		}
-		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			rocketCameraRotation.x += 1.0f;
-		}
+        if(isCollision) {
+            switch(SC.bbMap[collisionId].cType) {
+                case OBJECT: {
+                    // Compute the closest point on the AABB to the sphere center
+                    glm::vec3 closestPoint =
+                            glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
+                                       SC.bbMap[collisionId].max);
+
+                    // Calculate the normal of the collision surface
+                    glm::vec3 difference = rocketPosition - closestPoint;
+                    float distance = glm::length(difference);
+
+                    glm::vec3 normal = glm::normalize(difference);
+
+                    // Move the sphere out of collision along the normal
+                    rocketPosition = closestPoint + normal * rocketCollider.radius;
+                    // Adjust the sphere's velocity to slide along the AABB surface
+                    float dotProduct = glm::dot(rocketSpeed, normal);
+                    glm::vec3 correction = normal * dotProduct;
+                    rocketSpeed -= correction;
+                    if(rocketPosition.y <= SC.bbMap[collisionId].max.y + rocketCollider.radius &&	 // If the collision is coming from above
+                       !(std::abs(normal.x) > 0.5f ||
+                         std::abs(normal.z) > 0.5f) &&	// Not from the side
+                       normal.y != -1.0f) {				// Not from below
+                        rocketState = FALLING;
+                        restingPosition.x = rocketPosition.x;
+                        restingPosition.y = rocketPosition.y + 0.01f;
+                        restingPosition.z = rocketPosition.z;
+                        rocketSpeed = glm::vec3(0.0f);
+                    }
+                    break;
+                }
+                case COLLECTIBLE: {
+                    coinLocation = (std::rand() % (4 - 0 + 1));
+                    SC.bbMap.erase(collisionId);
+                    break;
+                }
+            }
+        }
+
+        if(rocketState == RESTING){
+            rocketPosition = restingPosition;
+        } else {
+            rocketSpeed.y -= verticalSpeed;
+            rocketPosition += rocketSpeed * deltaT;
+        }
+
+        // Camera controls
+        getCameraControls();
 
 		if(rocketCameraRotation.y > 89.0f) rocketCameraRotation.y = 89.0f;
 		if(rocketCameraRotation.y < -89.0f) rocketCameraRotation.y = -89.0f;
@@ -541,11 +546,10 @@ protected:
 		float camy =
 			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
 		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
-		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
+		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 		// Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
-
 		rocketCollider.center = rocketPosition;
 
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
