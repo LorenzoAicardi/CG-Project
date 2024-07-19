@@ -85,8 +85,8 @@ protected:
 	// Here you set the main application parameters
 	void setWindowParameters() override {
 		// window size, titile and initial background
-		windowWidth = 720;
-		windowHeight = 480;
+		windowWidth = 1920;
+		windowHeight = 1080;
 		windowTitle = "Project";
 		windowResizable = GLFW_TRUE;
 		initialBackgroundColor = {0.5f, 0.5f, 0.6f, 1.0f};
