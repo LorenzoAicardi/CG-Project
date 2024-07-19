@@ -471,6 +471,7 @@ protected:
 		if(isCollision) {
 			switch(SC.bbMap[collisionId].cType) {
 				case OBJECT: {
+					std::cout << "colliding with " << collisionId << std::endl;
 					// Compute the closest point on the AABB to the sphere center
 					glm::vec3 closestPoint =
 						glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
