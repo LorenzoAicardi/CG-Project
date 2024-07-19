@@ -1,7 +1,6 @@
 // This has been adapted from the Vulkan tutorial
 
 #include "modules/SceneManager.hpp"
-#include <glm/gtx/string_cast.hpp>
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -13,21 +12,6 @@
 //        mat4  : alignas(16)
 struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
-};
-
-struct MaterialUniformBufferObject {
-	struct {
-		alignas(16) glm::vec3 a;
-	} ambient[4];
-	struct {
-		alignas(16) glm::vec3 d;
-	} diffuse[4];
-	struct {
-		alignas(16) glm::vec3 s;
-	} specular[4];
-	struct {
-		alignas(16) glm::vec3 e;
-	} emission[4];
 };
 
 struct GlobalUniformBufferObject {
@@ -56,7 +40,6 @@ struct SphereCollider {
 
 enum RocketState { FALLING, RESTING };
 
-std::vector<tinyobj::material_t> materials;
 
 class ConfigManager : public BaseProject {
 protected:
@@ -65,7 +48,6 @@ protected:
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
-	DescriptorSetLayout DSLRocket;
 
 	SceneManager<Vertex> SC;
 
@@ -92,11 +74,10 @@ protected:
 	Texture TFurniture;
 	Texture TCoin;
 	Texture TStack;
-	Texture Tempty;
+	Texture TRocket;
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
-	MaterialUniformBufferObject RocketMaterialUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -109,9 +90,9 @@ protected:
 
 		// Descriptor pool sizes
 		SC.countResources("models/scene.json");
-		uniformBlocksInPool = SC.resCtr.uboInPool + 20;
-		texturesInPool = SC.resCtr.textureInPool + 20;
-		setsInPool = SC.resCtr.dsInPool + 20;
+		uniformBlocksInPool = SC.resCtr.uboInPool + 50;
+		texturesInPool = SC.resCtr.textureInPool + 50;
+		setsInPool = SC.resCtr.dsInPool + 50;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -125,12 +106,7 @@ protected:
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
 
-		// Init vertex descriptors
-		DSLRocket.init(this,
-					   {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-						{1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},
-						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-						 VK_SHADER_STAGE_FRAGMENT_BIT}});
+
 
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
@@ -148,8 +124,8 @@ protected:
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
-		PCartoon.init(this, &VD, "shaders/CartoonShaderVert.spv",
-					  "shaders/CartoonShaderFrag.spv", {&DSLRocket});
+		PCartoon.init(this, &VD, "shaders/ToonShaderVert.spv",
+					  "shaders/ToonShaderFrag.spv",{SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
@@ -174,11 +150,11 @@ protected:
 										 sizeof(GlobalUniformBufferObject), nullptr}};
 
 		bindings["rocket"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-							  {1, UNIFORM, sizeof(MaterialUniformBufferObject), nullptr},
+							  {1, TEXTURE, 0, SC.T[2]},
 							  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, &DSLRocket, bindings["rocket"]);
+		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -191,7 +167,9 @@ protected:
 
 		// cleanup descriptor sets
 		SC.pipelinesAndDescriptorSetsCleanup();
+
 		DSRocket.cleanup();
+
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -202,8 +180,6 @@ protected:
 		// cleanup textures & models
 		SC.localCleanup();
 		MRocket.cleanup();
-		DSLRocket.cleanup();
-
 		// Destroys the pipelines
 		PCookTorrance.destroy();
 		PEmission.destroy();
@@ -298,8 +274,6 @@ protected:
 			bbMap[iId] = bbox;
 
 			std::cout << "bbox for object " << iId << std::endl;
-			std::cout << glm::to_string(bbMap[iId].min) << ", "
-					  << glm::to_string(bbMap[iId].max) << std::endl;
 		}
 	}
 
@@ -574,15 +548,7 @@ protected:
 
 		rocketCollider.center = rocketPosition;
 
-		for(int i = 0; i < 4; i++) {
-			RocketMaterialUbo.ambient[i].a = glm::vec3(1.0);
-			RocketMaterialUbo.diffuse[i].d = glm::vec3(1.0);
-			RocketMaterialUbo.emission[i].e = glm::vec3(1.0);
-			RocketMaterialUbo.specular[i].s = glm::vec3(1.0);
-		}
-
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
-		DSRocket.map(currentImage, &RocketMaterialUbo, sizeof(RocketMaterialUbo), 1);
 		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
 		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}

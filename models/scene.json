@@ -133,6 +133,10 @@
     {
       "id": "tpnt",
       "texture": "textures/red_paint.jpg"
+    },
+    {
+      "id": "trt",
+      "texture": "textures/RocketTexture.png"
     }
   ],
   "instances": [

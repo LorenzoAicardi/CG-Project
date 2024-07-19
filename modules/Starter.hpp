@@ -2111,7 +2111,7 @@ void Model<Vert>::loadModelGLTF(std::string file, bool encoded, std::string id,
 		auto modelString = readFile(file);
 
 		const std::vector<unsigned char> key =
-			plusaes::key_from_string(&"CG2023SkelKey128");	// 16-char = 128-bit
+			plusaes::key_from_string(&"CG2023SkelKey128");  // 16-char = 128-bit
 		const unsigned char iv[16] = {
 			0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 			0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -2629,18 +2629,18 @@ void Pipeline::create() {
 	rasterizer.cullMode = CM;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	// Optional
-	rasterizer.depthBiasClamp = 0.0f;			// Optional
-	rasterizer.depthBiasSlopeFactor = 0.0f;		// Optional
+	rasterizer.depthBiasConstantFactor = 0.0f;  // Optional
+	rasterizer.depthBiasClamp = 0.0f;           // Optional
+	rasterizer.depthBiasSlopeFactor = 0.0f;     // Optional
 
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_TRUE;
 	multisampling.rasterizationSamples = BP->msaaSamples;
-	multisampling.minSampleShading = 1.0f;			 // Optional
-	multisampling.pSampleMask = nullptr;			 // Optional
-	multisampling.alphaToCoverageEnable = VK_FALSE;	 // Optional
-	multisampling.alphaToOneEnable = VK_FALSE;		 // Optional
+	multisampling.minSampleShading = 1.0f;           // Optional
+	multisampling.pSampleMask = nullptr;             // Optional
+	multisampling.alphaToCoverageEnable = VK_FALSE;  // Optional
+	multisampling.alphaToOneEnable = VK_FALSE;       // Optional
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.colorWriteMask =
@@ -2651,8 +2651,8 @@ void Pipeline::create() {
 		transp ? VK_BLEND_FACTOR_SRC_ALPHA : VK_BLEND_FACTOR_ONE;
 	colorBlendAttachment.dstColorBlendFactor =
 		transp ? VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA : VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;			 // Optional
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;	 // Optional
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;             // Optional
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;  // Optional
 
@@ -2662,10 +2662,10 @@ void Pipeline::create() {
 	colorBlending.logicOp = VK_LOGIC_OP_COPY;  // Optional
 	colorBlending.attachmentCount = 1;
 	colorBlending.pAttachments = &colorBlendAttachment;
-	colorBlending.blendConstants[0] = 0.0f;	 // Optional
-	colorBlending.blendConstants[1] = 0.0f;	 // Optional
-	colorBlending.blendConstants[2] = 0.0f;	 // Optional
-	colorBlending.blendConstants[3] = 0.0f;	 // Optional
+	colorBlending.blendConstants[0] = 0.0f;  // Optional
+	colorBlending.blendConstants[1] = 0.0f;  // Optional
+	colorBlending.blendConstants[2] = 0.0f;  // Optional
+	colorBlending.blendConstants[3] = 0.0f;  // Optional
 
 	std::vector<VkDescriptorSetLayout> DSL(D.size());
 	for(int i = 0; i < D.size(); i++) {
@@ -2676,7 +2676,7 @@ void Pipeline::create() {
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = DSL.size();
 	pipelineLayoutInfo.pSetLayouts = DSL.data();
-	pipelineLayoutInfo.pushConstantRangeCount = 0;	   // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 0;     // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;  // Optional
 
 	VkResult result = vkCreatePipelineLayout(BP->device, &pipelineLayoutInfo,
@@ -2692,11 +2692,11 @@ void Pipeline::create() {
 	depthStencil.depthWriteEnable = VK_TRUE;
 	depthStencil.depthCompareOp = compareOp;
 	depthStencil.depthBoundsTestEnable = VK_FALSE;
-	depthStencil.minDepthBounds = 0.0f;	 // Optional
-	depthStencil.maxDepthBounds = 1.0f;	 // Optional
+	depthStencil.minDepthBounds = 0.0f;  // Optional
+	depthStencil.maxDepthBounds = 1.0f;  // Optional
 	depthStencil.stencilTestEnable = VK_FALSE;
 	depthStencil.front = {};  // Optional
-	depthStencil.back = {};	  // Optional
+	depthStencil.back = {};   // Optional
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -2714,7 +2714,7 @@ void Pipeline::create() {
 	pipelineInfo.renderPass = BP->renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;  // Optional
-	pipelineInfo.basePipelineIndex = -1;			   // Optional
+	pipelineInfo.basePipelineIndex = -1;               // Optional
 
 	result = vkCreateGraphicsPipelines(BP->device, VK_NULL_HANDLE, 1,
 									   &pipelineInfo, nullptr, &graphicsPipeline);

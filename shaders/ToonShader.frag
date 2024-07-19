@@ -11,12 +11,7 @@ layout(location = 2) in vec2 fragUV;
 layout(location = 0) out vec4 outColor;
 
 // uniforms
-layout(set = 0, binding = 1) uniform RocketMaterialUniformBufferObject {
-    vec3 ambient[4];
-    vec3 diffuse[4];
-    vec3 specular[4];
-    vec3 emission[4];
-} rmubo;
+layout(set = 0, binding = 1) uniform sampler2D tex;
 
 layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
     vec3 lightDir[2];
@@ -68,21 +63,19 @@ float gGGX(float rho, vec3 n, vec3 a) {
     return 2 / (1 + sqrt(1 + (rho*rho*((1-na2)/na2))));
 }
 
-/**
- * Compute BRDF following Cook-Torrance model
- */
-vec3 BRDF(vec3 diff, vec3 spec, vec3 norm, vec3 eyeDir, vec3 lightDir) {
+
+vec3 BRDF(vec3 albedo, vec3 norm, vec3 eyeDir, vec3 lightDir) {
     float rho = 0.1;
     float F0 = 0.8;
     float k = 0.6;
 
-    vec3 diffuse = diff * max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = albedo * max(dot(norm, lightDir), 0.0);
 
     vec3 h = normalize(lightDir + eyeDir);
     float D = (rho*rho) / PI * pow(pow(max(dot(norm, h), 0.0), 2) * (rho*rho - 1) + 1, 2);
     float F = F0 + (1 - F0) * pow(1 - max(dot(eyeDir, h), 0.0), 5);
     float G = gGGX(rho, norm, eyeDir) * gGGX(rho, norm, lightDir);
-    vec3 specular = spec * vec3(D*F*G / 4*max(dot(eyeDir, norm), 0.0));
+    vec3 specular = vec3(D*F*G / 4*max(dot(eyeDir, norm), 0.0));
 
     return k*diffuse + (1-k)*specular;
 }
@@ -90,28 +83,23 @@ vec3 BRDF(vec3 diff, vec3 spec, vec3 norm, vec3 eyeDir, vec3 lightDir) {
 void main() {
     vec3 norm = normalize(fragNorm);
     vec3 eyeDir = normalize(gubo.eyePos - fragPos);
+    vec3 albedo = texture(tex, fragUV).rgb;
     vec3 L = vec3(0);// solution of rendering equation
-
-    // material properties
-    vec3 Ka = vec3(1.0);
-    vec3 Kd = vec3(0.800000, 0.027537, 0.030877);
-    vec3 Ks = vec3(1.0);
-    vec3 Ke = vec3(0.0);
 
     // lights
     vec3 lightDir = directLightDir(fragPos, 0);
     vec3 lightColor = directLightColor(fragPos, 0);
-    L += BRDF(Kd, Ks, norm, eyeDir, lightDir) * lightColor;
+    L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor;
 
     lightDir = pointLightDir(fragPos, 1);
     lightColor = pointLightColor(fragPos, 1);
-    L += BRDF(Kd, Ks, norm, eyeDir, lightDir) * lightColor;
+    L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor;
 
     // ambient lighting
     vec3 La = C00 + (norm.x*C11) + (norm.y*C1m1) + (norm.z*C10) + (norm.x*norm.y*C2m2) +
     (norm.y*norm.z*C1m1) + (norm.z*norm.x*C11) + ((norm.x*norm.x - norm.y*norm.y) * C22) +
     ((3*norm.z*norm.z - 1) * C20);
-    vec3 ambient = La * Ka;
+    vec3 ambient = La * albedo;
     L += ambient;
 
     outColor = vec4(L, 1.0f);

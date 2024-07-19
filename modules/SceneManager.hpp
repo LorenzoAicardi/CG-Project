@@ -2,7 +2,6 @@
 #include <json.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 typedef struct {
 	std::string *id;

@@ -1,15 +1,5 @@
-# Blender 4.1.1 MTL File: 'rocket.blend'
+# Blender 4.1.1 MTL File: 'None'
 # www.blender.org
-
-newmtl Material.002
-Ns 360.000000
-Ka 1.000000 1.000000 1.000000
-Kd 0.040485 0.254439 0.800000
-Ks 1.000000 1.000000 1.000000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
 
 newmtl Red
 Ns 360.000000
