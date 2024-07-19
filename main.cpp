@@ -273,8 +273,6 @@ protected:
 										 : bbox.cType = OBJECT;
 
 			bbMap[iId] = bbox;
-
-			std::cout << "bbox for object " << iId << std::endl;
 		}
 	}
 
