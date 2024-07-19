@@ -9,6 +9,7 @@ typedef struct {
 	int Mid;
 	int Tid;
 	int DSLid;
+	std::string *BBid;	// equal to model id
 	glm::mat4 Wm;
 } Instance;
 
@@ -119,7 +120,8 @@ public:
 	int ModelCount = 0;
 	Model<Vert> **M;
 	std::unordered_map<std::string, int> MeshIds;
-	std::vector<std::vector<glm::vec3>> vecList;
+	std::unordered_map<std::string, std::vector<glm::vec3>> vecMap;
+	std::unordered_map<std::string, BoundingBox> bbMap;
 
 	// Textures
 	int TextureCount = 0;
@@ -219,7 +221,7 @@ public:
 
 				M[k]->init(BP, VD, ms[k]["model"].template get<std::string>(),
 						   (MT[0] == 'O') ? OBJ : ((MT[0] == 'G') ? GLTF : MGCG),
-						   vecList);
+						   ms[k]["id"], vecMap);
 			}
 
 			// Textures
@@ -253,6 +255,7 @@ public:
 				I[k].Mid = MeshIds[is[k]["model"]];
 				I[k].Tid = TextureIds[is[k]["texture"]];
 				I[k].DSLid = LayoutIds[is[k]["layout"]];
+				I[k].BBid = new std::string(is[k]["model"]);
 
 				I[k].Wm =
 					TransformInterpreter::computeWorld(is[k]["transforms"]);

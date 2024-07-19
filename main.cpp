@@ -127,17 +127,10 @@ protected:
 
 		// Init vertex descriptors
 		DSLRocket.init(this,
-					   {// this array contains the bindings:
-						// first  element : the binding number
-						// second element : the type of element (buffer or texture)
-						// using the corresponding Vulkan constant
-						// third  element : the pipeline stage where it will be used
-						// using the corresponding Vulkan constant
-						{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+					   {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
 						{1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 						 VK_SHADER_STAGE_FRAGMENT_BIT}});
-
 
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
@@ -153,13 +146,14 @@ protected:
 						   "shaders/CookTorranceShaderFrag.spv",
 						   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-					   "shaders/LambertBlinnSEShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+					   "shaders/LambertBlinnSEShaderFrag.spv",
+					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PCartoon.init(this, &VD, "shaders/CartoonShaderVert.spv",
 					  "shaders/CartoonShaderFrag.spv", {&DSLRocket});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
-		MRocket.init(this, &VD, "models/rotrocketypositive.obj", OBJ, SC.vecList);
+		MRocket.init(this, &VD, "models/rocket.obj", OBJ, "rocket", SC.vecMap);
 
 		// Init local variables
 	}
@@ -173,16 +167,18 @@ protected:
 		bindings["default"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							   {1, TEXTURE, 0, SC.T[0]},
 							   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+
 		bindings["abstractPainting"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 										{1, TEXTURE, 0, SC.T[1]},
 										{2, UNIFORM,
 										 sizeof(GlobalUniformBufferObject), nullptr}};
 
+		bindings["rocket"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+							  {1, UNIFORM, sizeof(MaterialUniformBufferObject), nullptr},
+							  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, &DSLRocket,
-					  {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					   {1, UNIFORM, sizeof(MaterialUniformBufferObject), nullptr},
-					   {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}});
+		DSRocket.init(this, &DSLRocket, bindings["rocket"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -206,6 +202,7 @@ protected:
 		// cleanup textures & models
 		SC.localCleanup();
 		MRocket.cleanup();
+		DSLRocket.cleanup();
 
 		// Destroys the pipelines
 		PCookTorrance.destroy();
@@ -224,8 +221,9 @@ protected:
 		// binds the data sets
 		SC.populateCommandBuffer(commandBuffer, currentImage, PCookTorrance);
 
+		PCartoon.bind(commandBuffer);
 		MRocket.bind(commandBuffer);
-		DSRocket.bind(commandBuffer, PCookTorrance, 0, currentImage);
+		DSRocket.bind(commandBuffer, PCartoon, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
@@ -246,10 +244,8 @@ protected:
 	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
 	float GRAVITY_CONSTANT = 2.0f;
 
-	bool isPlaced[21] = {0};
-
 	SphereCollider rocketCollider;
-	RocketState rocketState;
+	RocketState rocketState = FALLING;
 	glm::vec3 restingPosition;
 
 	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
@@ -276,17 +272,17 @@ protected:
 		return distance < sphere.radius;
 	}
 
-
-	void placeObject(int index, bool (&placed)[21], glm::mat4& World,
-					 std::vector<BoundingBox>& bbList) {
-		if(!placed[index]) {
+	void placeObject(std::string mId, std::string iId, glm::mat4& World,
+					 std::unordered_map<std::string, BoundingBox>& bbMap) {
+		if(bbMap.find(iId) == bbMap.end()) {
 			BoundingBox bbox;
 			glm::vec4 homogeneousPoint;
 
 			bbox.min = glm::vec3(std::numeric_limits<float>::max());
 			bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
-			for(int j = 0; j < SC.vecList[index].size(); j++) {
-				glm::vec3 vertex = SC.vecList[index][j];
+			std::cout << "**" << SC.vecMap[mId].size() << "**" << std::endl;
+			for(int j = 0; j < SC.vecMap[mId].size(); j++) {
+				glm::vec3 vertex = SC.vecMap[mId][j];
 				homogeneousPoint = glm::vec4(vertex, 1.0f);
 				glm::vec4 newVertex = World * homogeneousPoint;
 				vertex = glm::vec3(newVertex);
@@ -296,11 +292,14 @@ protected:
 			}
 			bbox.max = glm::round(bbox.max * 100.0f) / 100.0f;
 			bbox.min = glm::round(bbox.min * 100.0f) / 100.0f;
-			index <= 19 ? bbox.cType = OBJECT : bbox.cType = COLLECTIBLE;
+			(mId.substr(0, 4) == "coin") ? bbox.cType = COLLECTIBLE
+										 : bbox.cType = OBJECT;
 
-			bbList.push_back(bbox);
+			bbMap[iId] = bbox;
 
-			placed[index] = true;
+			std::cout << "bbox for object " << iId << std::endl;
+			std::cout << glm::to_string(bbMap[iId].min) << ", "
+					  << glm::to_string(bbMap[iId].max) << std::endl;
 		}
 	}
 
@@ -335,15 +334,10 @@ protected:
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
 		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.02f, 0.02f, 0.02f));
 		RocketUbo.mvpMat = Prj * View * World;
-		if(!isPlaced[0]) {
-			placeObject(0, isPlaced, World, bbList);
+		rocketCollider.center = rocketPosition;
+		rocketCollider.radius = 0.05f;
+		restingPosition = glm::vec3(0.0f);
 
-			rocketCollider.center = rocketPosition;
-			rocketCollider.radius = 0.05f;
-			rocketState = FALLING;
-			restingPosition = glm::vec3(0.0f);
-			isPlaced[0] = true;
-		}
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
 
 		// Update global uniforms
@@ -362,24 +356,30 @@ protected:
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyeDir = glm::vec4(0.0f);
 		gubo.eyeDir.w = 1.0f;
-		gubo.eyePos = rocketPosition;
+		gubo.eyePos = camPos;
 
 		// Place static objects on scene
 		UniformBufferObject ubo{};
+		int i;
+		std::string instanceId, modelId;
 		for(auto instance : SC.InstanceIds) {
-			int i = instance.second;
+			i = instance.second;
+			instanceId = instance.first;
+			modelId = *SC.I[i].BBid;
 			ubo.mvpMat = ViewPrj * SC.I[i].Wm;
+			placeObject(modelId, instanceId, SC.I[i].Wm, SC.bbMap);
 			SC.DS[i]->map(currentImage, &ubo, sizeof(ubo), 0);
 			SC.DS[i]->map(currentImage, &gubo, sizeof(gubo), 2);
 		}
 
 		// Need to check collisions first
 		bool isCollision = false;
-		int collisionIndex = -1;
-		for(int i = 1; i < bbList.size(); i++) {
-			if(checkCollision(rocketCollider, bbList[i])) {
+		std::string collisionId;
+		for(auto bb : SC.bbMap) {
+			if(checkCollision(rocketCollider, bb.second)) {
 				isCollision = true;
-				collisionIndex = i;
+				// Grab key of colliding object
+				collisionId = bb.first;
 				break;
 			}
 		}
@@ -424,12 +424,12 @@ protected:
 			rocketPosition += rocketSpeed * deltaT;
 
 			if(isCollision) {
-				switch(bbList[collisionIndex].cType) {
+				switch(SC.bbMap[collisionId].cType) {
 					case OBJECT: {
 						// Compute the closest point on the AABB to the sphere center
 						glm::vec3 closestPoint =
-							glm::clamp(rocketPosition, bbList[collisionIndex].min,
-									   bbList[collisionIndex].max);
+							glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
+									   SC.bbMap[collisionId].max);
 
 						// Calculate the normal of the collision surface
 						glm::vec3 difference = rocketPosition - closestPoint;
@@ -448,8 +448,7 @@ protected:
 					}
 					case COLLECTIBLE: {
 						coinLocation = (std::rand() % (4 - 0 + 1));
-						isPlaced[20] = false;
-						bbList.pop_back();
+						SC.bbMap.erase(collisionId);
 						break;
 					}
 				}
@@ -477,14 +476,14 @@ protected:
 					}
 				}
 			} else {
-				std::cout << "Collision type: " << bbList[collisionIndex].cType
+				std::cout << "Collision type: " << SC.bbMap[collisionId].cType
 						  << std::endl;
-				switch(bbList[collisionIndex].cType) {
+				switch(SC.bbMap[collisionId].cType) {
 					case OBJECT: {
 						// Compute the closest point on the AABB to the sphere center
 						glm::vec3 closestPoint =
-							glm::clamp(rocketPosition, bbList[collisionIndex].min,
-									   bbList[collisionIndex].max);
+							glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
+									   SC.bbMap[collisionId].max);
 
 						// Calculate the normal of the collision surface
 						glm::vec3 difference = rocketPosition - closestPoint;
@@ -499,7 +498,7 @@ protected:
 						glm::vec3 correction = normal * dotProduct;
 						rocketSpeed -= correction;
 
-						if(rocketPosition.y <= bbList[collisionIndex].max.y +
+						if(rocketPosition.y <= SC.bbMap[collisionId].max.y +
 												   rocketCollider.radius &&	 // If the collision is coming from above
 						   !(std::abs(normal.x) > 0.5f ||
 							 std::abs(normal.z) > 0.5f) &&	// Not from the side
@@ -507,7 +506,7 @@ protected:
 							rocketSpeed = glm::vec3(0.0f);
 							rocketState = RESTING;
 							restingPosition.x = rocketPosition.x;
-							restingPosition.y = bbList[collisionIndex].max.y +
+							restingPosition.y = SC.bbMap[collisionId].max.y +
 												rocketCollider.radius + 0.01f;
 							restingPosition.z = rocketPosition.z;
 						}
@@ -524,8 +523,7 @@ protected:
 						}
 
 						coinLocation = (std::rand() % (4 - 0 + 1));
-						isPlaced[20] = false;
-						bbList.pop_back();
+						SC.bbMap.erase(collisionId);
 						break;
 					}
 				}
@@ -568,8 +566,8 @@ protected:
 			cos(glm::radians(rocketRotation.y + rocketCameraRotation.y)) * radius;
 		float camy =
 			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
-		View = glm::lookAt(glm::vec3(camx, camy, camz) + rocketPosition,
-						   rocketPosition, glm::vec3(0, 1, 0));
+		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
+		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 
 		// Update mvpMat and map the rocket
 		RocketUbo.mvpMat = Prj * View * World;
