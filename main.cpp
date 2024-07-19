@@ -256,7 +256,6 @@ protected:
 
 			bbox.min = glm::vec3(std::numeric_limits<float>::max());
 			bbox.max = glm::vec3(std::numeric_limits<float>::lowest());
-			std::cout << "**" << SC.vecMap[mId].size() << "**" << std::endl;
 			for(int j = 0; j < SC.vecMap[mId].size(); j++) {
 				glm::vec3 vertex = SC.vecMap[mId][j];
 				homogeneousPoint = glm::vec4(vertex, 1.0f);
@@ -382,9 +381,6 @@ protected:
 			verticalSpeed += GRAVITY_CONSTANT * deltaT;
 			// Set terminal fall speed
 			verticalSpeed = glm::max(verticalSpeed, 0.1f);
-			std::cout << "I'm moving at " << verticalSpeed << ", ("
-					  << rocketPosition.x << ", " << rocketPosition.y << ", "
-					  << rocketPosition.z << ")\n";
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
@@ -400,8 +396,6 @@ protected:
 				glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
 			rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
-			std::cout << "rocket going at " << rocketSpeed.x << ", "
-					  << rocketSpeed.y << ", " << rocketSpeed.z << std::endl;
 
 			// Cap maximum speed
 			if(glm::length(rocketSpeed) > 1.0f)
@@ -515,10 +509,10 @@ protected:
 		}
 
 		if(rocketState == RESTING) {
-			std::cout << "I'm resting \n";
 			rocketPosition = restingPosition;
 		} else {
 			rocketSpeed.y -= verticalSpeed;
+			rocketSpeed.y = glm::max(rocketSpeed.y, -1.75f);
 			rocketPosition += rocketSpeed * deltaT;
 		}
 
