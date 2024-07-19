@@ -66,9 +66,11 @@ protected:
 	// Please note that Model objects depends on the corresponding vertex
 	// structure Models
 	Model<Vertex> MRocket;
+    Model<Vertex> MCoin;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
+    DescriptorSet DSCoin;
 
 	// Textures
 	Texture TFurniture;
@@ -78,6 +80,7 @@ protected:
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
+    UniformBufferObject CoinUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -119,7 +122,7 @@ protected:
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
+	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 2.0f, 4.0f);
 	glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
 	glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
 	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.5f);
@@ -127,8 +130,9 @@ protected:
 	std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
 											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
 											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
+    int coinLocation = 0;
 
-	void localInit() override {
+    void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
 
@@ -156,6 +160,7 @@ protected:
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
 		MRocket.init(this, &VD, "models/rocket.obj", OBJ, "rocket", SC.vecMap);
+        MCoin.init(this, &VD, "models/Coin_Gold.mgcg", MGCG, "coin", SC.vecMap);
 
 		// Init local variables
 		rocketCollider.radius = 0.05f;
@@ -180,8 +185,13 @@ protected:
 							  {1, TEXTURE, 0, SC.T[2]},
 							  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
+        bindings["coin"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+                              {1, TEXTURE, 0, SC.T[3]},
+                              {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+
 		SC.pipelinesAndDescriptorSetsInit(bindings);
 		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
+        DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["coin"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -196,6 +206,7 @@ protected:
 		SC.pipelinesAndDescriptorSetsCleanup();
 
 		DSRocket.cleanup();
+        DSCoin.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -206,6 +217,7 @@ protected:
 		// cleanup textures & models
 		SC.localCleanup();
 		MRocket.cleanup();
+        MCoin.cleanup();
 		// Destroys the pipelines
 		PCookTorrance.destroy();
 		PEmission.destroy();
@@ -223,17 +235,18 @@ protected:
 		// binds the data sets
 		SC.populateCommandBuffer(commandBuffer, currentImage, PCookTorrance);
 
+        MCoin.bind(commandBuffer);
+        DSCoin.bind(commandBuffer, PCookTorrance, 0, currentImage);
+        vkCmdDrawIndexed(commandBuffer,
+                         static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
+
 		PCartoon.bind(commandBuffer);
+
 		MRocket.bind(commandBuffer);
 		DSRocket.bind(commandBuffer, PCartoon, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
-
-	// Rocket
-	// restingPosition = glm::vec3(0.0f);
-
-	int coinLocation = 0;
 
 	// Helper function for checking collisions
 	bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
@@ -361,6 +374,14 @@ protected:
 			SC.DS[i]->map(currentImage, &ubo, sizeof(ubo), 0);
 			SC.DS[i]->map(currentImage, &gubo, sizeof(gubo), 2);
 		}
+
+        World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
+        World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+        CoinUbo.mvpMat = ViewPrj * World;
+        placeObject("coin", "coin", World, SC.bbMap);
+        DSCoin.map(currentImage, &ubo, sizeof(ubo), 0);
+        DSCoin.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// Need to check collisions first
 		bool isCollision = false;
