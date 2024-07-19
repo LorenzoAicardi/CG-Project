@@ -55,6 +55,21 @@
       "format": "MGCG"
     },
     {
+      "id": "pc",
+      "model": "models/laptop.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "pad",
+      "model": "models/gamepad.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "ps5",
+      "model": "models/ps5.mgcg",
+      "format": "MGCG"
+    },
+    {
       "id": "gpouf",
       "model": "models/gaming_pouf.mgcg",
       "format": "MGCG"
@@ -97,6 +112,16 @@
     {
       "id": "hdphn",
       "model": "models/headphones.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "spkr",
+      "model": "models/speaker.mgcg",
+      "format": "MGCG"
+    },
+    {
+      "id": "subw",
+      "model": "models/woofer.mgcg",
       "format": "MGCG"
     },
     {
@@ -421,6 +446,54 @@
       ]
     },
     {
+      "id": "monitor",
+      "model": "tv",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            3.0,
+            0.73,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ps5",
+      "model": "ps5",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            2.4,
+            0.73,
+            0.55
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gamepad",
+      "model": "pad",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            2.4,
+            0.73,
+            0.8
+          ]
+        }
+      ]
+    },
+    {
       "id": "gpouf",
       "model": "gpouf",
       "texture": "tf",
@@ -549,15 +622,15 @@
       ]
     },
     {
-      "id": "television",
-      "model": "tv",
+      "id": "speaker1",
+      "model": "spkr",
       "texture": "tf",
       "layout": "DSLGlobal",
       "transforms": [
         {
           "type": "translate",
           "vec": [
-            -3.3,
+            -3.1,
             0.425,
             7.5
           ]
@@ -568,6 +641,78 @@
             0.0,
             180.0,
             0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            0.75,
+            0.75,
+            0.75
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speaker2",
+      "model": "spkr",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.5,
+            0.425,
+            7.5
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            180.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            0.75,
+            0.75,
+            0.75
+          ]
+        }
+      ]
+    },
+    {
+      "id": "woofer",
+      "model": "subw",
+      "texture": "tf",
+      "layout": "DSLGlobal",
+      "transforms": [
+        {
+          "type": "translate",
+          "vec": [
+            -3.92,
+            0.003,
+            7.5
+          ]
+        },
+        {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            180.0,
+            0.0
+          ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            0.75,
+            0.75,
+            0.75
           ]
         }
       ]
