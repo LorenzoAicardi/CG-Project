@@ -429,65 +429,6 @@ protected:
 			// "Cancel" gravity while accelerating
 			verticalSpeed = 0.0f;
 		}
-		/* else {
-
-
-			if(!isCollision) {
-				if(rocketState == RESTING) {
-					rocketPosition = restingPosition;
-				} else {
-					// rocketPosition.y -= verticalSpeed * deltaT;
-					// Deceleration towards minimum speed (0)
-					if(glm::length(rocketSpeed) > 0.0f) {
-						float speed = glm::length(rocketSpeed);
-						speed -= MOVE_SPEED * deltaT;
-						speed = glm::max(speed, 0.0f);
-						rocketSpeed = glm::normalize(rocketSpeed) * speed;
-					}
-				}
-			} else {
-				switch(SC.bbMap[collisionId].cType) {
-					case OBJECT: {
-						// Compute the closest point on the AABB to the sphere center
-						glm::vec3 closestPoint =
-							glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
-									   SC.bbMap[collisionId].max);
-
-						// Calculate the normal of the collision surface
-						glm::vec3 difference = rocketPosition - closestPoint;
-						float distance = glm::length(difference);
-
-						glm::vec3 normal = glm::normalize(difference);
-						// Move the sphere out of collision along the normal
-						rocketPosition = closestPoint + normal * rocketCollider.radius;
-
-						// Adjust the sphere's velocity to slide along the AABB surface
-						float dotProduct = glm::dot(rocketSpeed, normal);
-						glm::vec3 correction = normal * dotProduct;
-						rocketSpeed -= correction;
-
-						if(rocketPosition.y <= SC.bbMap[collisionId].max.y +
-												   rocketCollider.radius &&	 // If the collision is coming from above
-						   !(std::abs(normal.x) > 0.5f ||
-							 std::abs(normal.z) > 0.5f) &&	// Not from the side
-						   normal.y != -1.0f) {				// Not from below
-							rocketSpeed = glm::vec3(0.0f);
-							rocketState = RESTING;
-							restingPosition.x = rocketPosition.x;
-							restingPosition.y = SC.bbMap[collisionId].max.y +
-												rocketCollider.radius + 0.01f;
-							restingPosition.z = rocketPosition.z;
-						}
-						break;
-					}
-					case COLLECTIBLE: {
-						coinLocation = (std::rand() % (4 - 0 + 1));
-						SC.bbMap.erase(collisionId);
-						break;
-					}
-				}
-			}
-		}*/
 
 		if(isCollision) {
 			switch(SC.bbMap[collisionId].cType) {
