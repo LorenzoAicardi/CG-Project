@@ -136,7 +136,6 @@ protected:
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
 
-
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
@@ -204,7 +203,6 @@ protected:
 
 		// cleanup descriptor sets
 		SC.pipelinesAndDescriptorSetsCleanup();
-
 		DSRocket.cleanup();
 		DSCoin.cleanup();
 	}
@@ -218,6 +216,7 @@ protected:
 		SC.localCleanup();
 		MRocket.cleanup();
 		MCoin.cleanup();
+
 		// Destroys the pipelines
 		PCookTorrance.destroy();
 		PEmission.destroy();
@@ -241,7 +240,6 @@ protected:
 						 static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
 
 		PCartoon.bind(commandBuffer);
-
 		MRocket.bind(commandBuffer);
 		DSRocket.bind(commandBuffer, PCartoon, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
@@ -381,7 +379,7 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinUbo.mvpMat = ViewPrj * World;
 		placeObject("coin", "coin", World, SC.bbMap);
-		DSCoin.map(currentImage, &ubo, sizeof(ubo), 0);
+		DSCoin.map(currentImage, &CoinUbo, sizeof(CoinUbo), 0);
 		DSCoin.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// Need to check collisions first
