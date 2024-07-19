@@ -107,7 +107,6 @@ protected:
 		SC.initLayouts(this, "models/scene.json");
 
 
-
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
@@ -125,7 +124,8 @@ protected:
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PCartoon.init(this, &VD, "shaders/ToonShaderVert.spv",
-					  "shaders/ToonShaderFrag.spv",{SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+					  "shaders/ToonShaderFrag.spv",
+					  {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
@@ -169,7 +169,6 @@ protected:
 		SC.pipelinesAndDescriptorSetsCleanup();
 
 		DSRocket.cleanup();
-
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -326,7 +325,7 @@ protected:
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 4.0f, 4.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 2.0f, 2.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyeDir = glm::vec4(0.0f);
 		gubo.eyeDir.w = 1.0f;
