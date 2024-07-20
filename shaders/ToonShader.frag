@@ -10,10 +10,12 @@ layout(location = 2) in vec2 fragUV;
 // shader output
 layout(location = 0) out vec4 outColor;
 
-// uniforms
-layout(set = 0, binding = 1) uniform sampler2D tex;
+// textures
+layout(set = 0, binding = 1) uniform sampler2D texDiffuse;
+layout(set = 0, binding = 2) uniform sampler2D texSpecular;
 
-layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
+// uniforms
+layout(set = 0, binding = 3) uniform GlobalUniformBufferObject {
     vec3 lightDir[3];
     vec3 lightPos[3];
     vec4 lightColor[3];
@@ -62,7 +64,7 @@ vec3 spot_light_dir(vec3 pos, int i) {
 }
 
 vec3 spot_light_color(vec3 pos, int i) {
-    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos),2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos,i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0,1);
+    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
 }
 
 /**
@@ -75,12 +77,11 @@ float gGGX(float rho, vec3 n, vec3 a) {
 }
 
 
-vec3 BRDF(vec3 albedo, vec3 norm, vec3 eyeDir, vec3 lightDir) {
-    float rho = 0.1;
+vec3 BRDF(vec3 diff, float rho, vec3 norm, vec3 eyeDir, vec3 lightDir) {
     float F0 = 0.8;
     float k = 0.6;
 
-    vec3 diffuse = albedo * max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * max(dot(norm, lightDir), 0.0);
 
     vec3 h = normalize(lightDir + eyeDir);
     float D = (rho*rho) / PI * pow(pow(max(dot(norm, h), 0.0), 2) * (rho*rho - 1) + 1, 2);
@@ -94,21 +95,22 @@ vec3 BRDF(vec3 albedo, vec3 norm, vec3 eyeDir, vec3 lightDir) {
 void main() {
     vec3 norm = normalize(fragNorm);
     vec3 eyeDir = normalize(gubo.eyePos - fragPos);
-    vec3 albedo = texture(tex, fragUV).rgb;
-    vec3 L = vec3(0);// solution of rendering equation
+    vec3 albedo = texture(texDiffuse, fragUV).rgb;
+    float roughness = texture(texSpecular, fragUV).r;
+    vec3 L = vec3(0.0f);// solution of rendering equation
 
     // lights
     vec3 lightDir = directLightDir(fragPos, 0);
     vec3 lightColor = directLightColor(fragPos, 0);
-    L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
+    L += BRDF(albedo, roughness, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
 
     lightDir = pointLightDir(fragPos, 1);
     lightColor = pointLightColor(fragPos, 1);
-    L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
+    L += BRDF(albedo, roughness, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
 
     lightDir = spot_light_dir(fragPos, 2);
     lightColor = spot_light_color(fragPos, 2);
-    L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * gubo.spotlightOn;
+    L += BRDF(albedo, roughness, norm, eyeDir, lightDir) * lightColor * gubo.spotlightOn;
 
     // ambient lighting
     vec3 La = C00 + (norm.x*C11) + (norm.y*C1m1) + (norm.z*C10) + (norm.x*norm.y*C2m2) +
@@ -117,5 +119,5 @@ void main() {
     vec3 ambient = La * albedo;
     L += ambient;
 
-    outColor = vec4(L, 1.0f);
+    outColor = vec4(clamp(L, 0.0f, 1.0f), 1.0f);
 }

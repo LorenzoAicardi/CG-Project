@@ -191,6 +191,10 @@
     {
       "id": "tcnrho",
       "texture": "textures/Coin_Gold_MetallicSmoothness.png"
+    },
+    {
+      "id": "trts",
+      "texture": "textures/RocketTextureGlossy.png"
     }
   ],
   "instances": [

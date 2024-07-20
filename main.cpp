@@ -167,8 +167,7 @@ protected:
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
-				   "shaders/ToonShaderFrag.spv",
-				   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+				   "shaders/ToonShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
 		PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
 				   "shaders/CoinShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
 
@@ -202,7 +201,8 @@ protected:
 
 		bindings["rocket"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							  {1, TEXTURE, 0, SC.T[2]},
-							  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+							  {2, TEXTURE, 0, SC.T[5]},
+							  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		bindings["coin"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							{1, TEXTURE, 0, SC.T[3]},
@@ -210,7 +210,7 @@ protected:
 							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
+		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["rocket"]);
 		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coin"]);
 	}
 
@@ -610,7 +610,7 @@ protected:
 		rocketCollider.center = rocketPosition;
 
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
-		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 3);
 		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 };
