@@ -548,6 +548,11 @@ protected:
 			rocketPosition += rocketSpeed * deltaT;
 		}
 
+		// Prevent crazy bugs
+		if(isnan(rocketPosition.x) || isnan(rocketPosition.y) ||
+		   isnan(rocketPosition.z))
+			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
+
 		// Camera controls
 		getCameraControls();
 
