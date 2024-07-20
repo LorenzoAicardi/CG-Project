@@ -4,6 +4,8 @@
 
 layout(set = 0, binding = 0) uniform UniformBufferObject {
     mat4 mvpMat;
+    mat4 mMat;
+    mat4 nMat;
 }ubo;
 
 //values taken from previous pipeline stage
@@ -20,7 +22,7 @@ void main(){
     //compute clipping coordinates
     gl_Position = ubo.mvpMat * vec4(inPosition, 1.0);
 
-    fragPos = inPosition;
-    fragNorm = inNorm;
+    fragPos = (ubo.mMat * vec4(inPosition, 1.0)).xyz;
+    fragNorm = mat3(ubo.nMat) * inNorm;
     fragUv = inUv;
 }

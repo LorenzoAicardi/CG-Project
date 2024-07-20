@@ -12,6 +12,8 @@
 //        mat4  : alignas(16)
 struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat;
+	alignas(16) glm::mat4 nMat;
 };
 
 struct GlobalUniformBufferObject {
@@ -59,8 +61,10 @@ protected:
 	Pipeline PCookTorrance;
 	/// self-emissive objects (e.g. lamps)
 	Pipeline PEmission;
-	/// cartoon Shader for the rocket
-	Pipeline PCartoon;
+	/// Toon Shader for the rocket
+	Pipeline PToon;
+	/// Cook-Torrance + roughness from texture
+	Pipeline PCoin;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex
@@ -151,9 +155,11 @@ protected:
 		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
-		PCartoon.init(this, &VD, "shaders/ToonShaderVert.spv",
-					  "shaders/ToonShaderFrag.spv",
-					  {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+		PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
+				   "shaders/ToonShaderFrag.spv",
+				   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+		PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
+				   "shaders/CoinShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
@@ -167,7 +173,8 @@ protected:
 	void pipelinesAndDescriptorSetsInit() override {
 		PCookTorrance.create();
 		PEmission.create();
-		PCartoon.create();
+		PToon.create();
+		PCoin.create();
 
 		std::unordered_map<std::string, std::vector<DescriptorSetElement>> bindings;
 		bindings["default"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -185,11 +192,12 @@ protected:
 
 		bindings["coin"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							{1, TEXTURE, 0, SC.T[3]},
-							{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+							{2, TEXTURE, 0, SC.T[4]},
+							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
 		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
-		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["coin"]);
+		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coin"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -198,7 +206,8 @@ protected:
 		// cleanup pipelines
 		PCookTorrance.cleanup();
 		PEmission.cleanup();
-		PCartoon.cleanup();
+		PToon.cleanup();
+		PCoin.cleanup();
 
 		// cleanup descriptor sets
 		SC.pipelinesAndDescriptorSetsCleanup();
@@ -219,7 +228,8 @@ protected:
 		// Destroys the pipelines
 		PCookTorrance.destroy();
 		PEmission.destroy();
-		PCartoon.destroy();
+		PToon.destroy();
+		PCoin.destroy();
 	}
 
 	// Here is the creation of the command buffer:
@@ -233,14 +243,15 @@ protected:
 		// binds the data sets
 		SC.populateCommandBuffer(commandBuffer, currentImage, PCookTorrance);
 
+		PCoin.bind(commandBuffer);
 		MCoin.bind(commandBuffer);
-		DSCoin.bind(commandBuffer, PCookTorrance, 0, currentImage);
+		DSCoin.bind(commandBuffer, PCoin, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
 
-		PCartoon.bind(commandBuffer);
+		PToon.bind(commandBuffer);
 		MRocket.bind(commandBuffer);
-		DSRocket.bind(commandBuffer, PCartoon, 0, currentImage);
+		DSRocket.bind(commandBuffer, PToon, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
@@ -337,22 +348,23 @@ protected:
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;
 
+		glm::mat4 baseTrans = glm::mat4(1.0f);
 		glm::mat4 World;
 		glm::mat4 ViewPrj = Prj * View;
 
-		// Update global uniforms
+		// Update global uniforms (lighting)
 		GlobalUniformBufferObject gubo{};
 		// Direct light
 		gubo.lightDir[0].v =
-			glm::vec3(cos(glm::radians(135.0f)),  // * cos(cTime * angTurnTimeFact)),
-					  sin(glm::radians(135.0f)),
-					  cos(glm::radians(135.0f)));  // * sin(cTime * angTurnTimeFact));
-		gubo.lightPos[0].v = glm::vec3(7.0f, 6.0f, 0.0f);
+			glm::vec3(cos(glm::radians(0.0f)),	// * cos(cTime * angTurnTimeFact)),
+					  sin(glm::radians(0.0f)),
+					  cos(glm::radians(90.0f)));  // * sin(cTime * angTurnTimeFact));
+		gubo.lightPos[0].v = glm::vec3(7.0f, 2.5f, 2.0f);
 		gubo.lightColor[0] = glm::vec4(1.0f);
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 2.0f, 2.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 2.8f, 4.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyeDir = glm::vec4(0.0f);
 		gubo.eyeDir.w = 1.0f;
@@ -366,20 +378,25 @@ protected:
 			i = instance.second;
 			instanceId = instance.first;
 			modelId = *SC.I[i].BBid;
+			ubo.mMat = baseTrans * SC.I[i].Wm;
 			ubo.mvpMat = ViewPrj * SC.I[i].Wm;
+			ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
 			placeObject(modelId, instanceId, SC.I[i].Wm, SC.bbMap);
 			SC.DS[i]->map(currentImage, &ubo, sizeof(ubo), 0);
 			SC.DS[i]->map(currentImage, &gubo, sizeof(gubo), 2);
 		}
 
+		// Place coin
 		World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+		CoinUbo.mMat = baseTrans * World;
 		CoinUbo.mvpMat = ViewPrj * World;
+		CoinUbo.nMat = glm::inverse(glm::transpose(CoinUbo.mMat));
 		placeObject("coin", "coin", World, SC.bbMap);
 		DSCoin.map(currentImage, &CoinUbo, sizeof(CoinUbo), 0);
-		DSCoin.map(currentImage, &gubo, sizeof(gubo), 2);
+		DSCoin.map(currentImage, &gubo, sizeof(gubo), 3);
 
 		// Need to check collisions first
 		bool isCollision = false;
@@ -422,7 +439,7 @@ protected:
 
 			// Acceleration towards maximum speed
 			rocketState = MOVING;
-		 	// Reset direction to avoid permanently going in the same direction
+			// Reset direction to avoid permanently going in the same direction
 			rocketDirection = {0, 0, 0};
 			// "Cancel" gravity while accelerating
 			verticalSpeed = 0.0f;
@@ -463,7 +480,7 @@ protected:
 				}
 				case COLLECTIBLE: {
 					coinLocation = (std::rand() % (4 - 0 + 1));
-                    std::cout << "Coin location: " << coinLocation << std::endl;
+					std::cout << "Coin location: " << coinLocation << std::endl;
 					SC.bbMap.erase(collisionId);
 					break;
 				}
@@ -507,7 +524,9 @@ protected:
 
 		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 		// Update mvpMat and map the rocket
+		RocketUbo.mMat = baseTrans * World;
 		RocketUbo.mvpMat = Prj * View * World;
+		RocketUbo.nMat = glm::inverse(glm::transpose(RocketUbo.mMat));
 		rocketCollider.center = rocketPosition;
 
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
