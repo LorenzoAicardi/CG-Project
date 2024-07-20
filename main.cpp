@@ -449,15 +449,20 @@ protected:
 		// Stabilize the rocket in both vertical and horizontal planes
 		if(rocketRotHor <= -3.0f || rocketRotHor >= 3.0f) {
 			if(wasGoingRight)
-				rocketRotHor += glm::exp(-20.0 * deltaT);
+				rocketRotHor += glm::exp(-20.0 * deltaT), (double)20.0f;
 			else
-				rocketRotHor -= glm::exp(-20.0 * deltaT);
+				rocketRotHor -= glm::exp(-20.0 * deltaT), (double)-20.0f;
+
+			// Keep the angle confined to avoid complete turns
+			rocketRotHor = glm::clamp(rocketRotHor, -20.0f, 20.0f);
 		}
 		if(rocketRotVert <= -3.0f || rocketRotVert >= 3.0f) {
 			if(wasGoingUp)
-				rocketRotVert += glm::exp(-20.0 * deltaT);
+				rocketRotVert += glm::min(glm::exp(-20.0 * deltaT), (double)20.0f);
 			else
-				rocketRotVert -= glm::exp(-20.0 * deltaT);
+				rocketRotVert -= glm::max(glm::exp(-20.0 * deltaT), (double)-20.0f);
+
+			rocketRotVert = glm::clamp(rocketRotVert, -20.0f, 20.0f);
 		}
 
 		// Gravity (gravity constant can be lowered)
