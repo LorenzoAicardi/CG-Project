@@ -128,7 +128,7 @@ protected:
 	bool wasGoingRight = false;
 	bool wasGoingUp = false;
 	float GRAVITY_CONSTANT = 0.1f;
-	float COIN_ROT_SPEED = 15.0f;
+	float COIN_ROT_SPEED = 2.0f;
 	float CoinRot = 0.0f;
 
 	float deltaT = 0.016f;
