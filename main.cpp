@@ -125,7 +125,7 @@ protected:
 	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 2.0f, 4.0f);
 	glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
 	glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
-	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.5f);
+	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.0f);
 	glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
 	std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
 											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
@@ -423,7 +423,7 @@ protected:
 
 			// Acceleration towards maximum speed
 			rocketState = MOVING;
-			// Reset direction to avoid permanently going in the same direction
+		 	// Reset direction to avoid permanently going in the same direction
 			rocketDirection = {0, 0, 0};
 			// "Cancel" gravity while accelerating
 			verticalSpeed = 0.0f;
@@ -464,6 +464,7 @@ protected:
 				}
 				case COLLECTIBLE: {
 					coinLocation = (std::rand() % (4 - 0 + 1));
+                    std::cout << "Coin location: " << coinLocation << std::endl;
 					SC.bbMap.erase(collisionId);
 					break;
 				}
