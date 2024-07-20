@@ -395,11 +395,10 @@ protected:
 		GlobalUniformBufferObject gubo{};
 		// Direct light
 		gubo.lightDir[0].v =
-			glm::vec3(cos(glm::radians(0.0f)),	// * cos(cTime * angTurnTimeFact)),
-					  sin(glm::radians(0.0f)),
-					  cos(glm::radians(90.0f)));  // * sin(cTime * angTurnTimeFact));
+			glm::vec3(cos(glm::radians(0.0f)), sin(glm::radians(0.0f)),
+					  cos(glm::radians(100.0f)));
 		gubo.lightPos[0].v = glm::vec3(7.0f, 2.5f, 2.0f);
-		gubo.lightColor[0] = glm::vec4(1.0f);
+		gubo.lightColor[0] = glm::vec4(0.99f, 0.42f, 0.33f, 1.0f);
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
