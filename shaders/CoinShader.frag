@@ -11,7 +11,7 @@ layout(location = 2) in vec2 fragUV;
 layout(location = 0) out vec4 outColor;
 
 // uniforms
-layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
+layout(set = 0, binding = 3) uniform GlobalUniformBufferObject {
     vec3 lightDir[3];
     vec3 lightPos[3];
     vec4 lightColor[3];
