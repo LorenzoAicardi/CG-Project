@@ -16,6 +16,27 @@
           "stage": "frag"
         }
       ]
+    },
+    {
+      "name": "DSLCoin",
+      "bindings": [
+        {
+          "type": "ubo",
+          "stage": "vert"
+        },
+        {
+          "type": "img",
+          "stage": "frag"
+        },
+        {
+          "type": "img",
+          "stage": "frag"
+        },
+        {
+          "type": "ubo",
+          "stage": "frag"
+        }
+      ]
     }
   ],
   "models": [
@@ -166,6 +187,10 @@
     {
       "id": "cn",
       "texture": "textures/Coin_Gold_Albedo.png"
+    },
+    {
+      "id": "tcnrho",
+      "texture": "textures/Coin_Gold_MetallicSmoothness.png"
     }
   ],
   "instances": [
@@ -355,7 +380,7 @@
           "type": "rotate",
           "vec": [
             0.0,
-            -90.0,
+            90.0,
             0.0
           ]
         }
@@ -379,7 +404,7 @@
           "type": "rotate",
           "vec": [
             0.0,
-            -90.0,
+            90.0,
             0.0
           ]
         }
@@ -536,11 +561,11 @@
           ]
         },
         {
-          "type": "scale",
+          "type": "rotate",
           "vec": [
-            -1.0,
-            1.0,
-            -1.0
+            0.0,
+            180.0,
+            0.0
           ]
         }
       ]
@@ -760,11 +785,19 @@
           ]
         },
         {
+          "type": "rotate",
+          "vec": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
           "type": "scale",
           "vec": [
-            -1.0,
             1.0,
-            -1.0
+            1.0,
+            1.0
           ]
         }
       ]
@@ -803,7 +836,7 @@
           "type": "translate",
           "vec": [
             0.0,
-            3.8,
+            3.9,
             4.0
           ]
         }
@@ -923,7 +956,7 @@
           "type": "rotate",
           "vec": [
             0.0,
-            -180.0,
+            180.0,
             0.0
           ]
         },
