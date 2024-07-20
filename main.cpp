@@ -175,6 +175,7 @@ protected:
 		MCoin.init(this, &VD, "models/Coin_Gold.mgcg", MGCG, "coin", SC.vecMap);
 
 		// Init local variables
+		rocketCollider.center = rocketPosition;
 		rocketCollider.radius = 0.05f;
 	}
 
@@ -512,8 +513,7 @@ protected:
 					float distance = glm::length(difference);
 
 					glm::vec3 normal = glm::normalize(difference);
-
-					// Move the sphere out of collision along the normal
+																										  // Move the sphere out of collision along the normal
 					rocketPosition = closestPoint + normal * rocketCollider.radius;
 					// Adjust the sphere's velocity to slide along the AABB surface
 					float dotProduct = glm::dot(rocketSpeed, normal);
