@@ -527,7 +527,7 @@ protected:
 					float distance = glm::length(difference);
 
 					glm::vec3 normal = glm::normalize(difference);
-																										  // Move the sphere out of collision along the normal
+					// Move the sphere out of collision along the normal
 					rocketPosition = closestPoint + normal * rocketCollider.radius;
 					// Adjust the sphere's velocity to slide along the AABB surface
 					float dotProduct = glm::dot(rocketSpeed, normal);
@@ -567,7 +567,7 @@ protected:
 		   isnan(rocketPosition.z))
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 
-		if(glfwGetKey(window,GLFW_KEY_TAB)){
+		if(glfwGetKey(window, GLFW_KEY_TAB)) {
 			spotlightOn = 1 - spotlightOn;
 			gubo.spotlightOn = spotlightOn;
 		}
