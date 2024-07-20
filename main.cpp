@@ -120,7 +120,15 @@ protected:
 	glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
 	float verticalSpeed = 0.0f;
 	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
+	float rocketRotHor = 0.0f;
+	float rocketRotVert = 0.0f;
+	bool wasGoingRight = false;
+	bool wasGoingUp = false;
 	float GRAVITY_CONSTANT = 0.1f;
+	float COIN_ROT_SPEED = 15.0f;
+	float CoinRot = 0.0f;
+
+	float deltaT = 0.016f;
 
 	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
@@ -298,15 +306,39 @@ protected:
 	void getDirection() {
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketRotation.x -= 1.0f;
+			if(wasGoingUp) {
+				rocketRotVert -= 120.0 * deltaT;
+				rocketRotVert = glm::max(rocketRotVert, -20.0f);
+			} else {
+				wasGoingUp = true;
+			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			rocketRotation.x += 1.0f;
+			if(!wasGoingUp) {
+				rocketRotVert += 120.0 * deltaT;
+				rocketRotVert = glm::min(rocketRotVert, 20.0f);
+			} else {
+				wasGoingUp = false;
+			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			rocketRotation.y += 1.0f;
+			if(!wasGoingRight) {
+				rocketRotHor += 120.0f * deltaT;
+				rocketRotHor = glm::min(rocketRotHor, 20.0f);
+			} else {
+				wasGoingRight = false;
+			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			rocketRotation.y -= 1.0f;
+			if(wasGoingRight) {
+				rocketRotHor -= 120.0 * deltaT;
+				rocketRotHor = glm::max(rocketRotHor, -20.0f);
+			} else {
+				wasGoingRight = true;
+			}
 		}
 	}
 
@@ -332,7 +364,6 @@ protected:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		// Integration with the timers and controllers
-		float deltaT = 0.016f;
 		static float cTime = 0.0;
 		const float turnTime = 36.0f;
 		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
@@ -387,9 +418,12 @@ protected:
 		}
 
 		// Place coin
+		CoinRot += COIN_ROT_SPEED * deltaT;
+		if(CoinRot > 360.0f) CoinRot = 0.0f;
 		World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinUbo.mMat = baseTrans * World;
 		CoinUbo.mvpMat = ViewPrj * World;
@@ -411,6 +445,20 @@ protected:
 		}
 
 		getDirection();
+
+		// Stabilize the rocket in both vertical and horizontal planes
+		if(rocketRotHor <= -3.0f || rocketRotHor >= 3.0f) {
+			if(wasGoingRight)
+				rocketRotHor += glm::exp(-20.0 * deltaT);
+			else
+				rocketRotHor -= glm::exp(-20.0 * deltaT);
+		}
+		if(rocketRotVert <= -3.0f || rocketRotVert >= 3.0f) {
+			if(wasGoingUp)
+				rocketRotVert += glm::exp(-20.0 * deltaT);
+			else
+				rocketRotVert -= glm::exp(-20.0 * deltaT);
+		}
 
 		// Gravity (gravity constant can be lowered)
 		if(rocketState == MOVING) {	 // If the rocket is falling apply gravity
@@ -509,6 +557,10 @@ protected:
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.y),
 							 glm::vec3(0.0f, 1.0f, 0.0f));
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotation.x),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotHor),
+							 glm::vec3(0.0f, 1.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(rocketRotVert),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
 		World *= glm::scale(glm::mat4(1.0f), glm::vec3(0.02f, 0.02f, 0.02f));
 
