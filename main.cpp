@@ -167,9 +167,11 @@ protected:
 					   "shaders/LambertBlinnSEShaderFrag.spv",
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
-				   "shaders/ToonShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
+				   "shaders/ToonShaderFrag.spv",
+				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
 		PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
-				   "shaders/CoinShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
+				   "shaders/CoinShaderFrag.spv",
+				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
@@ -210,8 +212,8 @@ protected:
 							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["rocket"]);
-		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coin"]);
+		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["rocket"]);
+		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coin"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!

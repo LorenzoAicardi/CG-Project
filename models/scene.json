@@ -18,7 +18,7 @@
       ]
     },
     {
-      "name": "DSLCoin",
+      "name": "DSLRoughness",
       "bindings": [
         {
           "type": "ubo",
