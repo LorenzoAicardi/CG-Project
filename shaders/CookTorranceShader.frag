@@ -66,9 +66,9 @@ float gGGX(float rho, vec3 n, vec3 a) {
  * Compute BRDF following Cook-Torrance model
  */
 vec3 BRDF(vec3 albedo, vec3 norm, vec3 eyeDir, vec3 lightDir) {
-    float rho = 0.5;
-    float F0 = 0.8;
-    float k = 0.6;
+    float rho = 0.6;
+    float F0 = 0.2;
+    float k = 0.45;
 
     vec3 diffuse = albedo * max(dot(norm, lightDir), 0.0);
 
@@ -103,5 +103,5 @@ void main() {
     vec3 ambient = La * albedo;
     L += ambient;
 
-    outColor = vec4(L, 1.0f);
+    outColor = vec4(clamp(L, 0.0, 1.0), 1.0f);
 }

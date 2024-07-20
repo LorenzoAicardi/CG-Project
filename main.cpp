@@ -135,7 +135,6 @@ protected:
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
-
 		// init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
@@ -353,7 +352,7 @@ protected:
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 4.0f, 4.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 2.0f, 2.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyeDir = glm::vec4(0.0f);
 		gubo.eyeDir.w = 1.0f;
