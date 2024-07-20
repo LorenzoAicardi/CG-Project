@@ -19,13 +19,16 @@ struct UniformBufferObject {
 struct GlobalUniformBufferObject {
 	struct {
 		alignas(16) glm::vec3 v;
-	} lightDir[2];
+	} lightDir[3];
 	struct {
 		alignas(16) glm::vec3 v;
-	} lightPos[2];
-	alignas(16) glm::vec4 lightColor[2];
+	} lightPos[3];
+	alignas(16) glm::vec4 lightColor[3];
 	alignas(16) glm::vec3 eyePos;
 	alignas(16) glm::vec4 eyeDir;
+	alignas(4) float cosIn;
+	alignas(4) float cosOut;
+	alignas(4) int spotlightOn;
 };
 
 // The vertices data structures
@@ -143,7 +146,7 @@ protected:
 											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
 											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
 	int coinLocation = 0;
-
+	int spotlightOn;
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
@@ -177,6 +180,8 @@ protected:
 		// Init local variables
 		rocketCollider.center = rocketPosition;
 		rocketCollider.radius = 0.05f;
+
+		spotlightOn = 0;
 	}
 
 	void pipelinesAndDescriptorSetsInit() override {
@@ -402,6 +407,15 @@ protected:
 		gubo.eyeDir.w = 1.0f;
 		gubo.eyePos = camPos;
 
+		// Spotlight
+		gubo.lightDir[2].v = rocketPosition;
+		gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
+		gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
+		gubo.eyePos = camPos;
+		gubo.cosIn = cos(30.f);
+		gubo.cosOut = cos(60.f);
+		gubo.spotlightOn = spotlightOn;
+
 		// Place static objects on scene
 		UniformBufferObject ubo{};
 		int i;
@@ -553,6 +567,10 @@ protected:
 		   isnan(rocketPosition.z))
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 
+		if(glfwGetKey(window,GLFW_KEY_TAB)){
+			spotlightOn = 1 - spotlightOn;
+			gubo.spotlightOn = spotlightOn;
+		}
 		// Camera controls
 		getCameraControls();
 
