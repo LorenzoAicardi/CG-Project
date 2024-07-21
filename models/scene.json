@@ -191,6 +191,22 @@
     {
       "id": "tcnrho",
       "texture": "textures/Coin_Gold_MetallicSmoothness.png"
+    },
+    {
+      "id": "cncrn",
+      "texture": "textures/Coin_Crown_Gold_Albedo.png"
+    },
+    {
+      "id": "tcnrhocrn",
+      "texture": "textures/Coin_Crown_Gold_MetallicSmoothness.png"
+    },
+    {
+      "id": "cnthndr",
+      "texture": "textures/Coin_Thunder_Gold_Albedo.png"
+    },
+    {
+      "id": "tcnrhothndr",
+      "texture": "textures/Coin_Thunder_Gold_MetallicSmoothness.png"
     }
   ],
   "instances": [

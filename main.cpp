@@ -74,20 +74,28 @@ protected:
 	// structure Models
 	Model<Vertex> MRocket;
 	Model<Vertex> MCoin;
+	Model<Vertex> MCoinCrown;
+	Model<Vertex> MCoinThunder;
 
 	// Descriptor sets
 	DescriptorSet DSRocket;
 	DescriptorSet DSCoin;
+	DescriptorSet DSCoinCrown;
+	DescriptorSet DSCoinThunder;
 
 	// Textures
 	Texture TFurniture;
 	Texture TCoin;
 	Texture TStack;
 	Texture TRocket;
+	Texture TCoinCrown;
+	Texture TCoinThunder;
 
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
 	UniformBufferObject CoinUbo;
+	UniformBufferObject CoinCrownUbo;
+	UniformBufferObject CoinThunderUbo;
 
 	// Here you set the main application parameters
 	void setWindowParameters() override {
@@ -145,7 +153,27 @@ protected:
 	std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
 											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
 											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
+
+	glm::vec3 CROWN_DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
+	glm::vec3 CROWN_ABOVE_CHAIR = glm::vec3(-5.0f, 1.0f, 7.0f);
+	glm::vec3 CROWN_ABOVE_GDESK = glm::vec3(3.0f, 1.2f, 1.0f);
+	glm::vec3 CROWN_FRONT_DOOR = glm::vec3(-0.5f, 3.0f, 7.0f);
+	glm::vec3 CROWN_ABOVE_PLANT = glm::vec3(5.5f, 1.4f, 7.5f);
+	std::vector<glm::vec3> coinCrownLocations = {CROWN_DEFAULT_POSITION,
+											CROWN_ABOVE_CHAIR, CROWN_ABOVE_GDESK,
+												 CROWN_FRONT_DOOR, CROWN_ABOVE_PLANT};
+
+	glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 3.0f, 4.0f);
+	glm::vec3 THUNDER_ABOVE_SDESK = glm::vec3(5.3f, 1.2f, 2.0f);
+	glm::vec3 THUNDER_FRONT_CLOCK = glm::vec3(-5.5f, 2.0f, 3.0f);
+	glm::vec3 THUNDER_BEHIND_COLUMN = glm::vec3(4.5f, 2.0f, 6.0f);
+	glm::vec3 THUNDER_ABOVE_PS5 = glm::vec3(2.4f, 1.5f, 0.55f);
+	std::vector<glm::vec3> coinThunderLocations = {THUNDER_DEFAULT_POSITION,
+												 THUNDER_ABOVE_SDESK, THUNDER_FRONT_CLOCK,
+												 THUNDER_BEHIND_COLUMN, THUNDER_ABOVE_PS5};
 	int coinLocation = 0;
+	int coinCrownLocation = 0;
+	int coinThunderLocation = 0;
 	int spotlightOn;
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
@@ -176,6 +204,8 @@ protected:
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
 		MRocket.init(this, &VD, "models/rocket.obj", OBJ, "rocket", SC.vecMap);
 		MCoin.init(this, &VD, "models/Coin_Gold.mgcg", MGCG, "coin", SC.vecMap);
+		MCoinCrown.init(this, &VD, "models/Coin_Crown_Gold.mgcg", MGCG, "coinCrown", SC.vecMap);
+		MCoinThunder.init(this, &VD, "models/Coin_Thunder_Gold.mgcg", MGCG, "coinThunder", SC.vecMap);
 
 		// Init local variables
 		rocketCollider.center = rocketPosition;
@@ -208,10 +238,20 @@ protected:
 							{1, TEXTURE, 0, SC.T[3]},
 							{2, TEXTURE, 0, SC.T[4]},
 							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+		bindings["coinCrown"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+							{1, TEXTURE, 0, SC.T[5]},
+							{2, TEXTURE, 0, SC.T[6]},
+							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+		bindings["coinThunder"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+								  {1, TEXTURE, 0, SC.T[7]},
+								  {2, TEXTURE, 0, SC.T[8]},
+								  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
 		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
 		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coin"]);
+		DSCoinCrown.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coinCrown"]);
+		DSCoinThunder.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coinThunder"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -227,6 +267,8 @@ protected:
 		SC.pipelinesAndDescriptorSetsCleanup();
 		DSRocket.cleanup();
 		DSCoin.cleanup();
+		DSCoinCrown.cleanup();
+		DSCoinThunder.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -238,6 +280,8 @@ protected:
 		SC.localCleanup();
 		MRocket.cleanup();
 		MCoin.cleanup();
+		MCoinCrown.cleanup();
+		MCoinThunder.cleanup();
 
 		// Destroys the pipelines
 		PCookTorrance.destroy();
@@ -262,6 +306,17 @@ protected:
 		DSCoin.bind(commandBuffer, PCoin, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
+		PCoin.bind(commandBuffer);
+		MCoinCrown.bind(commandBuffer);
+		DSCoinCrown.bind(commandBuffer, PCoin, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MCoinCrown.indices.size()), 1, 0, 0, 0);
+
+		PCoin.bind(commandBuffer);
+		MCoinThunder.bind(commandBuffer);
+		DSCoinThunder.bind(commandBuffer, PCoin, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MCoinThunder.indices.size()), 1, 0, 0, 0);
 
 		PToon.bind(commandBuffer);
 		MRocket.bind(commandBuffer);
@@ -442,10 +497,42 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinUbo.mMat = baseTrans * World;
 		CoinUbo.mvpMat = ViewPrj * World;
-		CoinUbo.nMat = glm::inverse(glm::transpose(CoinUbo.mMat));
+		CoinUbo.nMat = glm::inverse(glm::transpose(CoinCrownUbo.mMat));
 		placeObject("coin", "coin", World, SC.bbMap);
 		DSCoin.map(currentImage, &CoinUbo, sizeof(CoinUbo), 0);
 		DSCoin.map(currentImage, &gubo, sizeof(gubo), 3);
+
+		// Place crown coin
+		CoinRot += COIN_ROT_SPEED * deltaT;
+		if(CoinRot > 360.0f) CoinRot = 0.0f;
+		World = glm::translate(glm::mat4(1.0f), coinCrownLocations[coinCrownLocation]);
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+		CoinCrownUbo.mMat = baseTrans * World;
+		CoinCrownUbo.mvpMat = ViewPrj * World;
+		CoinCrownUbo.nMat = glm::inverse(glm::transpose(CoinCrownUbo.mMat));
+		placeObject("coinCrown", "coinCrown", World, SC.bbMap);
+		DSCoinCrown.map(currentImage, &CoinCrownUbo, sizeof(CoinCrownUbo), 0);
+		DSCoinCrown.map(currentImage, &gubo, sizeof(gubo), 3);
+
+
+		// Place thunder coin
+		CoinRot += COIN_ROT_SPEED * deltaT;
+		if(CoinRot > 360.0f) CoinRot = 0.0f;
+		World = glm::translate(glm::mat4(1.0f), coinThunderLocations[coinThunderLocation]);
+		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+							 glm::vec3(1.0f, 0.0f, 0.0f));
+		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
+		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
+		CoinThunderUbo.mMat = baseTrans * World;
+		CoinThunderUbo.mvpMat = ViewPrj * World;
+		CoinThunderUbo.nMat = glm::inverse(glm::transpose(CoinThunderUbo.mMat));
+		placeObject("coinThunder", "coinThunder", World, SC.bbMap);
+		DSCoinThunder.map(currentImage, &CoinThunderUbo, sizeof(CoinThunderUbo), 0);
+		DSCoinThunder.map(currentImage, &gubo, sizeof(gubo), 3);
+
 
 		// Need to check collisions first
 		bool isCollision = false;
@@ -546,8 +633,17 @@ protected:
 					break;
 				}
 				case COLLECTIBLE: {
-					coinLocation = (std::rand() % (4 - 0 + 1));
-					std::cout << "Coin location: " << coinLocation << std::endl;
+					if(collisionId == "coin"){
+						coinLocation = (std::rand() % (4 - 0 + 1));
+						std::cout << "Coin location: " << coinLocation << std::endl;
+					}else if(collisionId == "coinCrown"){
+						coinCrownLocation = (std::rand() % (4 - 0 + 1));
+						std::cout << "Coin Crown location: " << coinCrownLocation << std::endl;
+					}else{
+						coinThunderLocation = (std::rand() % (4 - 0 + 1));
+						std::cout << "Coin Thunder location: " << coinThunderLocation << std::endl;
+
+					}
 					SC.bbMap.erase(collisionId);
 					break;
 				}
