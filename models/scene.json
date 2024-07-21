@@ -18,7 +18,7 @@
       ]
     },
     {
-      "name": "DSLCoin",
+      "name": "DSLRoughness",
       "bindings": [
         {
           "type": "ubo",
@@ -185,7 +185,7 @@
       "texture": "textures/RocketTexture.png"
     },
     {
-      "id": "cn",
+      "id": "tcn",
       "texture": "textures/Coin_Gold_Albedo.png"
     },
     {
@@ -207,6 +207,10 @@
     {
       "id": "tcnrhothndr",
       "texture": "textures/Coin_Thunder_Gold_MetallicSmoothness.png"
+    },
+    {
+      "id": "trts",
+      "texture": "textures/RocketTextureGlossy.png"
     }
   ],
   "instances": [
@@ -676,7 +680,7 @@
           "type": "translate",
           "vec": [
             -3.1,
-            0.425,
+            0.45,
             7.5
           ]
         },
@@ -708,7 +712,7 @@
           "type": "translate",
           "vec": [
             -3.5,
-            0.425,
+            0.45,
             7.5
           ]
         },
@@ -796,23 +800,15 @@
           "type": "translate",
           "vec": [
             3.5,
-            2.0,
+            1.92,
             6.0
-          ]
-        },
-        {
-          "type": "rotate",
-          "vec": [
-            0.0,
-            0.0,
-            0.0
           ]
         },
         {
           "type": "scale",
           "vec": [
             1.0,
-            1.0,
+            0.96,
             1.0
           ]
         }

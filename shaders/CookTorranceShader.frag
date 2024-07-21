@@ -60,7 +60,7 @@ vec3 spot_light_dir(vec3 pos, int i) {
 }
 
 vec3 spot_light_color(vec3 pos, int i) {
-    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos),2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos,i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0,1);
+    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
 }
 
 /**

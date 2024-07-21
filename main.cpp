@@ -136,7 +136,7 @@ protected:
 	bool wasGoingRight = false;
 	bool wasGoingUp = false;
 	float GRAVITY_CONSTANT = 0.1f;
-	float COIN_ROT_SPEED = 15.0f;
+	float COIN_ROT_SPEED = 2.0f;
 	float CoinRot = 0.0f;
 
 	float deltaT = 0.016f;
@@ -196,9 +196,10 @@ protected:
 					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
 		PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
 				   "shaders/ToonShaderFrag.spv",
-				   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
 		PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
-				   "shaders/CoinShaderFrag.spv", {SC.DSL[SC.LayoutIds["DSLCoin"]]});
+				   "shaders/CoinShaderFrag.spv",
+				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
 
 		// Init scene (models & textures)
 		SC.init(this, &VD, PCookTorrance, "models/scene.json");
@@ -232,7 +233,8 @@ protected:
 
 		bindings["rocket"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							  {1, TEXTURE, 0, SC.T[2]},
-							  {2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+							  {2, TEXTURE, 0, SC.T[5]},
+							  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		bindings["coin"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							{1, TEXTURE, 0, SC.T[3]},
@@ -248,10 +250,10 @@ protected:
 								  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
-		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLGlobal"]]}, bindings["rocket"]);
-		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coin"]);
-		DSCoinCrown.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coinCrown"]);
-		DSCoinThunder.init(this, {SC.DSL[SC.LayoutIds["DSLCoin"]]}, bindings["coinThunder"]);
+		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["rocket"]);
+		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coin"]);
+		DSCoinCrown.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coinCrown"]);
+		DSCoinThunder.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coinThunder"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -418,6 +420,12 @@ protected:
 		}
 	}
 
+    void constrainCameraPosition(glm::vec3& camPos, glm::vec3& min, glm::vec3& max){
+        camPos.x = glm::clamp(camPos.x, min.x, max.x);
+        camPos.y = glm::clamp(camPos.y, min.y, max.y);
+        camPos.z = glm::clamp(camPos.z, min.z, max.z);
+    }
+
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -448,11 +456,10 @@ protected:
 		GlobalUniformBufferObject gubo{};
 		// Direct light
 		gubo.lightDir[0].v =
-			glm::vec3(cos(glm::radians(0.0f)),	// * cos(cTime * angTurnTimeFact)),
-					  sin(glm::radians(0.0f)),
-					  cos(glm::radians(90.0f)));  // * sin(cTime * angTurnTimeFact));
+			glm::vec3(cos(glm::radians(0.0f)), sin(glm::radians(0.0f)),
+					  cos(glm::radians(100.0f)));
 		gubo.lightPos[0].v = glm::vec3(7.0f, 2.5f, 2.0f);
-		gubo.lightColor[0] = glm::vec4(1.0f);
+		gubo.lightColor[0] = glm::vec4(0.99f, 0.42f, 0.33f, 1.0f);
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
@@ -463,12 +470,12 @@ protected:
 		gubo.eyePos = camPos;
 
 		// Spotlight
-		gubo.lightDir[2].v = rocketPosition;
-		gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
-		gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
+        gubo.lightDir[2].v = glm::vec3(0.0f);
+        gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
+        gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
 		gubo.eyePos = camPos;
 		gubo.cosIn = cos(30.f);
-		gubo.cosOut = cos(60.f);
+		gubo.cosOut = cos(50.f);
 		gubo.spotlightOn = spotlightOn;
 
 		// Place static objects on scene
@@ -497,7 +504,7 @@ protected:
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinUbo.mMat = baseTrans * World;
 		CoinUbo.mvpMat = ViewPrj * World;
-		CoinUbo.nMat = glm::inverse(glm::transpose(CoinCrownUbo.mMat));
+		CoinUbo.nMat = glm::inverse(glm::transpose(CoinUbo.mMat));
 		placeObject("coin", "coin", World, SC.bbMap);
 		DSCoin.map(currentImage, &CoinUbo, sizeof(CoinUbo), 0);
 		DSCoin.map(currentImage, &gubo, sizeof(gubo), 3);
@@ -614,7 +621,7 @@ protected:
 					float distance = glm::length(difference);
 
 					glm::vec3 normal = glm::normalize(difference);
-																										  // Move the sphere out of collision along the normal
+					// Move the sphere out of collision along the normal
 					rocketPosition = closestPoint + normal * rocketCollider.radius;
 					// Adjust the sphere's velocity to slide along the AABB surface
 					float dotProduct = glm::dot(rocketSpeed, normal);
@@ -663,7 +670,7 @@ protected:
 		   isnan(rocketPosition.z))
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 
-		if(glfwGetKey(window,GLFW_KEY_TAB)){
+		if(glfwGetKey(window, GLFW_KEY_TAB)) {
 			spotlightOn = 1 - spotlightOn;
 			gubo.spotlightOn = spotlightOn;
 		}
@@ -698,6 +705,8 @@ protected:
 			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
 		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
 
+        constrainCameraPosition(camPos, SC.bbMap["walln"].min, SC.bbMap["walls"].max);
+
 		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 		// Update mvpMat and map the rocket
 		RocketUbo.mMat = baseTrans * World;
@@ -706,7 +715,7 @@ protected:
 		rocketCollider.center = rocketPosition;
 
 		DSRocket.map(currentImage, &RocketUbo, sizeof(RocketUbo), 0);
-		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 2);
+		DSRocket.map(currentImage, &gubo, sizeof(GlobalUniformBufferObject), 3);
 		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 };
