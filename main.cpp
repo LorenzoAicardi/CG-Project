@@ -233,7 +233,7 @@ protected:
 
 		bindings["rocket"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							  {1, TEXTURE, 0, SC.T[2]},
-							  {2, TEXTURE, 0, SC.T[5]},
+							  {2, TEXTURE, 0, SC.T[9]},
 							  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 
 		bindings["coin"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
