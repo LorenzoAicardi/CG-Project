@@ -44,6 +44,7 @@ struct SphereCollider {
 };
 
 enum RocketState { MOVING, RESTING };
+bool debounce = false;
 
 
 class ConfigManager : public BaseProject {
@@ -368,6 +369,7 @@ protected:
 
 	void getDirection() {
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			std::cout << "W SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.x -= 1.0f;
 			if(wasGoingUp) {
 				rocketRotVert -= 120.0 * deltaT;
@@ -377,6 +379,7 @@ protected:
 			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			std::cout << "S SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.x += 1.0f;
 			if(!wasGoingUp) {
 				rocketRotVert += 120.0 * deltaT;
@@ -386,6 +389,7 @@ protected:
 			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			std::cout << "D SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.y += 1.0f;
 			if(!wasGoingRight) {
 				rocketRotHor += 120.0f * deltaT;
@@ -427,9 +431,14 @@ protected:
     }
 
 	// Here is where you update the uniforms.
-	// Very likely this will be where you will be writing the logic of your application.
+	// Very likely this will be where you will be writing the logic of
+	// your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
+
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+			/*if(debounce){
+				debounce = false;
+			}			std::cout << "ESCAPE1 SET DEBOUNCE  " << debounce << "\n";*/
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		// Integration with the timers and controllers
@@ -582,6 +591,9 @@ protected:
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
+			/*if(debounce){
+				debounce = false;
+			}			std::cout << "SPACE SET DEBOUNCE  " << debounce << "\n";*/
 			rocketDirection.z -= 1.0f;
 
 			glm::mat4 rocketRotationMatrix =
@@ -670,9 +682,19 @@ protected:
 		   isnan(rocketPosition.z))
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 
-		if(glfwGetKey(window, GLFW_KEY_TAB)) {
-			spotlightOn = 1 - spotlightOn;
-			gubo.spotlightOn = spotlightOn;
+		if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
+			if(!debounce){
+				spotlightOn = 1 - spotlightOn;
+				gubo.spotlightOn = spotlightOn;
+				debounce = true;
+				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
+			}else if(debounce){
+				debounce = false;
+				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
+			}
+
+			/*spotlightOn = 1 - spotlightOn;
+			gubo.spotlightOn = spotlightOn;*/
 		}
 		// Camera controls
 		getCameraControls();
