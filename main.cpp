@@ -59,16 +59,6 @@ protected:
 	// Vertex formats
 	VertexDescriptor VD;
 
-	// Pipelines [Shader couples]
-	/// Lambert diffuse + Cook-Torrance specular
-	Pipeline PCookTorrance;
-	/// self-emissive objects (e.g. lamps)
-	Pipeline PEmission;
-	/// Toon Shader for the rocket
-	Pipeline PToon;
-	/// Cook-Torrance + roughness from texture
-	Pipeline PCoin;
-
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex
 	// structure Models
@@ -152,7 +142,7 @@ protected:
 	glm::vec3 CROWN_FRONT_DOOR = glm::vec3(-0.5f, 3.0f, 7.0f);
 	glm::vec3 CROWN_ABOVE_PLANT = glm::vec3(5.5f, 1.4f, 7.5f);
 	std::vector<glm::vec3> coinCrownLocations = {CROWN_DEFAULT_POSITION,
-											CROWN_ABOVE_CHAIR, CROWN_ABOVE_GDESK,
+												 CROWN_ABOVE_CHAIR, CROWN_ABOVE_GDESK,
 												 CROWN_FRONT_DOOR, CROWN_ABOVE_PLANT};
 
 	glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 3.0f, 4.0f);
@@ -161,8 +151,10 @@ protected:
 	glm::vec3 THUNDER_BEHIND_COLUMN = glm::vec3(4.5f, 2.0f, 6.0f);
 	glm::vec3 THUNDER_ABOVE_PS5 = glm::vec3(2.4f, 1.5f, 0.55f);
 	std::vector<glm::vec3> coinThunderLocations = {THUNDER_DEFAULT_POSITION,
-												 THUNDER_ABOVE_SDESK, THUNDER_FRONT_CLOCK,
-												 THUNDER_BEHIND_COLUMN, THUNDER_ABOVE_PS5};
+												   THUNDER_ABOVE_SDESK,
+												   THUNDER_FRONT_CLOCK,
+												   THUNDER_BEHIND_COLUMN,
+												   THUNDER_ABOVE_PS5};
 	int coinLocation = 0;
 	int coinCrownLocation = 0;
 	int coinThunderLocation = 0;
@@ -181,25 +173,25 @@ protected:
 				  sizeof(glm::vec2), UV}});
 
 		// Init pipelines
-		PCookTorrance.init(this, &VD, "shaders/CookTorranceShaderVert.spv",
-						   "shaders/CookTorranceShaderFrag.spv",
-						   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
-		PEmission.init(this, &VD, "shaders/LambertBlinnShaderVert.spv",
-					   "shaders/LambertBlinnSEShaderFrag.spv",
-					   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
-		PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
-				   "shaders/ToonShaderFrag.spv",
-				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
-		PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
-				   "shaders/CoinShaderFrag.spv",
-				   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
+		// PCookTorrance.init(this, &VD, "shaders/CookTorranceShaderVert.spv",
+		// 				   "shaders/CookTorranceShaderFrag.spv",
+		// 				   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
+		// PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
+		// 		   "shaders/ToonShaderFrag.spv",
+		// 		   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
+		// PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
+		// 		   "shaders/CoinShaderFrag.spv",
+		// 		   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
+		SC.initPipelines(this, &VD, "models/scene.json");
 
 		// Init scene (models & textures)
-		SC.init(this, &VD, PCookTorrance, "models/scene.json");
+		SC.init(this, &VD, "models/scene.json");
 		MRocket.init(this, &VD, "models/rocket.obj", OBJ, "rocket", SC.vecMap);
 		MCoin.init(this, &VD, "models/Coin_Gold.mgcg", MGCG, "coin", SC.vecMap);
-		MCoinCrown.init(this, &VD, "models/Coin_Crown_Gold.mgcg", MGCG, "coinCrown", SC.vecMap);
-		MCoinThunder.init(this, &VD, "models/Coin_Thunder_Gold.mgcg", MGCG, "coinThunder", SC.vecMap);
+		MCoinCrown.init(this, &VD, "models/Coin_Crown_Gold.mgcg", MGCG,
+						"coinCrown", SC.vecMap);
+		MCoinThunder.init(this, &VD, "models/Coin_Thunder_Gold.mgcg", MGCG,
+						  "coinThunder", SC.vecMap);
 
 		// Init local variables
 		rocketCollider.center = rocketPosition;
@@ -209,10 +201,7 @@ protected:
 	}
 
 	void pipelinesAndDescriptorSetsInit() override {
-		PCookTorrance.create();
-		PEmission.create();
-		PToon.create();
-		PCoin.create();
+		SC.createPipelines();
 
 		std::unordered_map<std::string, std::vector<DescriptorSetElement>> bindings;
 		bindings["default"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -234,31 +223,28 @@ protected:
 							{2, TEXTURE, 0, SC.T[4]},
 							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 		bindings["coinCrown"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-							{1, TEXTURE, 0, SC.T[5]},
-							{2, TEXTURE, 0, SC.T[6]},
-							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+								 {1, TEXTURE, 0, SC.T[5]},
+								 {2, TEXTURE, 0, SC.T[6]},
+								 {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
 		bindings["coinThunder"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-								  {1, TEXTURE, 0, SC.T[7]},
-								  {2, TEXTURE, 0, SC.T[8]},
-								  {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+								   {1, TEXTURE, 0, SC.T[7]},
+								   {2, TEXTURE, 0, SC.T[8]},
+								   {3, UNIFORM,
+									sizeof(GlobalUniformBufferObject), nullptr}};
 
 		SC.pipelinesAndDescriptorSetsInit(bindings);
 		DSRocket.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["rocket"]);
 		DSCoin.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coin"]);
-		DSCoinCrown.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coinCrown"]);
-		DSCoinThunder.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]}, bindings["coinThunder"]);
+		DSCoinCrown.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]},
+						 bindings["coinCrown"]);
+		DSCoinThunder.init(this, {SC.DSL[SC.LayoutIds["DSLRoughness"]]},
+						   bindings["coinThunder"]);
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
 	// All the object classes defined in Starter.hpp have a method .cleanup() for this purpose
 	void pipelinesAndDescriptorSetsCleanup() override {
-		// cleanup pipelines
-		PCookTorrance.cleanup();
-		PEmission.cleanup();
-		PToon.cleanup();
-		PCoin.cleanup();
-
-		// cleanup descriptor sets
+		// cleanup pipelines & descriptor sets
 		SC.pipelinesAndDescriptorSetsCleanup();
 		DSRocket.cleanup();
 		DSCoin.cleanup();
@@ -271,18 +257,12 @@ protected:
 	// You also have to destroy the pipelines: since they need to be rebuilt, they have two different
 	// methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() override {
-		// cleanup textures & models
+		// cleanup textures, models, layouts & pipelines
 		SC.localCleanup();
 		MRocket.cleanup();
 		MCoin.cleanup();
 		MCoinCrown.cleanup();
 		MCoinThunder.cleanup();
-
-		// Destroys the pipelines
-		PCookTorrance.destroy();
-		PEmission.destroy();
-		PToon.destroy();
-		PCoin.destroy();
 	}
 
 	// Here is the creation of the command buffer:
@@ -290,32 +270,35 @@ protected:
 	// with their buffers and textures
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) override {
 		// binds the pipeline
-		PCookTorrance.bind(commandBuffer);
+		SC.P[SC.PipelineIds["PCookTorrance"]]->bind(commandBuffer);
 		// for a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 
 		// binds the data sets
-		SC.populateCommandBuffer(commandBuffer, currentImage, PCookTorrance);
+		SC.populateCommandBuffer(commandBuffer, currentImage);
 
-		PCoin.bind(commandBuffer);
+		SC.P[SC.PipelineIds["PCoin"]]->bind(commandBuffer);
 		MCoin.bind(commandBuffer);
-		DSCoin.bind(commandBuffer, PCoin, 0, currentImage);
+		DSCoin.bind(commandBuffer, *SC.P[SC.PipelineIds["PCoin"]], 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
-		PCoin.bind(commandBuffer);
+		SC.P[SC.PipelineIds["PCoin"]]->bind(commandBuffer);
 		MCoinCrown.bind(commandBuffer);
-		DSCoinCrown.bind(commandBuffer, PCoin, 0, currentImage);
+		DSCoinCrown.bind(commandBuffer, *SC.P[SC.PipelineIds["PCoin"]], 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-						 static_cast<uint32_t>(MCoinCrown.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MCoinCrown.indices.size()), 1, 0,
+						 0, 0);
 
-		PCoin.bind(commandBuffer);
+		SC.P[SC.PipelineIds["PCoin"]]->bind(commandBuffer);
 		MCoinThunder.bind(commandBuffer);
-		DSCoinThunder.bind(commandBuffer, PCoin, 0, currentImage);
+		DSCoinThunder.bind(commandBuffer, *SC.P[SC.PipelineIds["PCoin"]], 0,
+						   currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-						 static_cast<uint32_t>(MCoinThunder.indices.size()), 1, 0, 0, 0);
+						 static_cast<uint32_t>(MCoinThunder.indices.size()), 1,
+						 0, 0, 0);
 
-		PToon.bind(commandBuffer);
+		SC.P[SC.PipelineIds["PToon"]]->bind(commandBuffer);
 		MRocket.bind(commandBuffer);
-		DSRocket.bind(commandBuffer, PToon, 0, currentImage);
+		DSRocket.bind(commandBuffer, *SC.P[SC.PipelineIds["PToon"]], 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
@@ -413,11 +396,11 @@ protected:
 		}
 	}
 
-    void constrainCameraPosition(glm::vec3& camPos, glm::vec3& min, glm::vec3& max){
-        camPos.x = glm::clamp(camPos.x, min.x, max.x);
-        camPos.y = glm::clamp(camPos.y, min.y, max.y);
-        camPos.z = glm::clamp(camPos.z, min.z, max.z);
-    }
+	void constrainCameraPosition(glm::vec3& camPos, glm::vec3& min, glm::vec3& max) {
+		camPos.x = glm::clamp(camPos.x, min.x, max.x);
+		camPos.y = glm::clamp(camPos.y, min.y, max.y);
+		camPos.z = glm::clamp(camPos.z, min.z, max.z);
+	}
 
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
@@ -456,16 +439,16 @@ protected:
 
 		// Point light (roof lamp)
 		gubo.lightDir[1].v = glm::vec3(0.0f);
-		gubo.lightPos[1].v = glm::vec3(0.0f, 2.8f, 4.0f);
+		gubo.lightPos[1].v = glm::vec3(0.0f, 2.95f, 4.0f);
 		gubo.lightColor[1] = glm::vec4(1.0f, 1.0f, 1.0f, 2.0f);
 		gubo.eyeDir = glm::vec4(0.0f);
 		gubo.eyeDir.w = 1.0f;
 		gubo.eyePos = camPos;
 
 		// Spotlight
-        gubo.lightDir[2].v = glm::vec3(0.0f);
-        gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
-        gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
+		gubo.lightDir[2].v = glm::vec3(0.0f);
+		gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
+		gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
 		gubo.eyePos = camPos;
 		gubo.cosIn = cos(30.f);
 		gubo.cosOut = cos(50.f);
@@ -521,7 +504,8 @@ protected:
 		// Place thunder coin
 		CoinRot += COIN_ROT_SPEED * deltaT;
 		if(CoinRot > 360.0f) CoinRot = 0.0f;
-		World = glm::translate(glm::mat4(1.0f), coinThunderLocations[coinThunderLocation]);
+		World = glm::translate(glm::mat4(1.0f),
+							   coinThunderLocations[coinThunderLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
 		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -633,16 +617,17 @@ protected:
 					break;
 				}
 				case COLLECTIBLE: {
-					if(collisionId == "coin"){
+					if(collisionId == "coin") {
 						coinLocation = (std::rand() % (4 - 0 + 1));
 						std::cout << "Coin location: " << coinLocation << std::endl;
-					}else if(collisionId == "coinCrown"){
+					} else if(collisionId == "coinCrown") {
 						coinCrownLocation = (std::rand() % (4 - 0 + 1));
-						std::cout << "Coin Crown location: " << coinCrownLocation << std::endl;
-					}else{
+						std::cout << "Coin Crown location: " << coinCrownLocation
+								  << std::endl;
+					} else {
 						coinThunderLocation = (std::rand() % (4 - 0 + 1));
-						std::cout << "Coin Thunder location: " << coinThunderLocation << std::endl;
-
+						std::cout << "Coin Thunder location: " << coinThunderLocation
+								  << std::endl;
 					}
 					SC.bbMap.erase(collisionId);
 					break;
@@ -697,7 +682,7 @@ protected:
 			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
 		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
 
-        constrainCameraPosition(camPos, SC.bbMap["walln"].min, SC.bbMap["walls"].max);
+		constrainCameraPosition(camPos, SC.bbMap["walln"].min, SC.bbMap["walls"].max);
 
 		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 		// Update mvpMat and map the rocket

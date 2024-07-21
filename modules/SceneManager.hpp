@@ -8,6 +8,7 @@ typedef struct {
 	int Mid;
 	int Tid;
 	int DSLid;
+	int Pid;
 	std::string *BBid;	// equal to model id
 	glm::mat4 Wm;
 } Instance;
@@ -133,6 +134,11 @@ public:
 	Instance *I;
 	std::unordered_map<std::string, int> InstanceIds;
 
+	// Pipelines
+	Pipeline **P;
+	int PipelineCount = 0;
+	std::unordered_map<std::string, int> PipelineIds;
+
 	ResourceAmount resCtr;
 
 	void countResources(std::string file) {
@@ -189,7 +195,41 @@ public:
 		}
 	}
 
-	void init(BaseProject *_BP, VertexDescriptor *VD, Pipeline &P, std::string file) {
+	void initPipelines(BaseProject *_BP, VertexDescriptor *VD, std::string file) {
+		BP = _BP;
+
+		nlohmann::json js;
+		std::ifstream ifs(file);
+
+		if(!ifs.is_open()) {
+			std::cout << "Error! Scene file not found!";
+			exit(-1);
+		}
+
+		try {
+			std::cout << "Parsing JSON\n";
+			ifs >> js;
+			ifs.close();
+
+			// Pipelines
+			nlohmann::json ppl = js["pipelines"];
+			PipelineCount = ppl.size();
+			P = (Pipeline **)calloc(PipelineCount, sizeof(Pipeline *));
+			for(int k = 0; k < PipelineCount; k++) {
+				PipelineIds[ppl[k]["name"]] = k;
+				std::string frag = ppl[k]["frag"];
+				std::string vert = ppl[k]["vert"];
+				std::string layout = ppl[k]["layout"];
+
+				P[k] = new Pipeline();
+				P[k]->init(BP, VD, vert, frag, {DSL[LayoutIds[layout]]});
+			}
+		} catch(const nlohmann::json::exception &e) {
+			std::cout << e.what() << '\n';
+		}
+	}
+
+	void init(BaseProject *_BP, VertexDescriptor *VD, std::string file) {
 		BP = _BP;
 
 		nlohmann::json js;
@@ -254,6 +294,7 @@ public:
 				I[k].Mid = MeshIds[is[k]["model"]];
 				I[k].Tid = TextureIds[is[k]["texture"]];
 				I[k].DSLid = LayoutIds[is[k]["layout"]];
+				I[k].Pid = PipelineIds[is[k]["pipeline"]];
 				I[k].BBid = new std::string(is[k]["model"]);
 
 				I[k].Wm =
@@ -261,6 +302,12 @@ public:
 			}
 		} catch(const nlohmann::json::exception &e) {
 			std::cout << e.what() << '\n';
+		}
+	}
+
+	void createPipelines() {
+		for(int i = 0; i < PipelineCount; i++) {
+			P[i]->create();
 		}
 	}
 
@@ -279,6 +326,9 @@ public:
 	}
 
 	void pipelinesAndDescriptorSetsCleanup() {
+		for(int i = 0; i < PipelineCount; i++) {
+			P[i]->cleanup();
+		}
 		for(int i = 0; i < InstanceCount; i++) {
 			DS[i]->cleanup();
 			delete DS[i];
@@ -312,13 +362,20 @@ public:
 			delete I[i].id;
 		}
 		free(I);
+
+		// Destroy pipelines
+		for(int i = 0; i < PipelineCount; i++) {
+			P[i]->destroy();
+			delete P[i];
+		}
+		free(P);
 	}
 
-	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage,
-							   Pipeline &P) {
+	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
 		for(int i = 0; i < InstanceCount; i++) {
+			P[I[i].Pid]->bind(commandBuffer);
 			M[I[i].Mid]->bind(commandBuffer);
-			DS[i]->bind(commandBuffer, P, 0, currentImage);
+			DS[i]->bind(commandBuffer, *P[I[i].Pid], 0, currentImage);
 
 			vkCmdDrawIndexed(commandBuffer,
 							 static_cast<uint32_t>(M[I[i].Mid]->indices.size()),

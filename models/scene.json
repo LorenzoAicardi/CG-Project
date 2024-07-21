@@ -39,6 +39,38 @@
       ]
     }
   ],
+  "pipelines": [
+    {
+      "name": "PCookTorrance",
+      "vert": "shaders/CookTorranceShaderVert.spv",
+      "frag": "shaders/CookTorranceShaderFrag.spv",
+      "layout": "DSLGlobal"
+    },
+    {
+      "name": "PToon",
+      "vert": "shaders/ToonShaderVert.spv",
+      "frag": "shaders/ToonShaderFrag.spv",
+      "layout": "DSLRoughness"
+    },
+    {
+      "name": "PCoin",
+      "vert": "shaders/CoinShaderVert.spv",
+      "frag": "shaders/CoinShaderFrag.spv",
+      "layout": "DSLRoughness"
+    },
+    {
+      "name": "PWindow",
+      "vert": "shaders/CookTorranceShaderVert.spv",
+      "frag": "shaders/WindowShaderFrag.spv",
+      "layout": "DSLGlobal"
+    },
+    {
+      "name": "PLamp",
+      "vert": "shaders/CookTorranceShaderVert.spv",
+      "frag": "shaders/LampShaderFrag.spv",
+      "layout": "DSLGlobal"
+    }
+  ],
   "models": [
     {
       "id": "wall",
@@ -47,7 +79,7 @@
     },
     {
       "id": "win",
-      "model": "models/window.mgcg",
+      "model": "models/glass_window.mgcg",
       "format": "MGCG"
     },
     {
@@ -219,6 +251,7 @@
       "model": "wall",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -243,6 +276,7 @@
       "model": "wall",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -275,6 +309,7 @@
       "model": "wall",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -299,6 +334,7 @@
       "model": "wall",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -331,6 +367,7 @@
       "model": "floor",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -355,6 +392,7 @@
       "model": "wall",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -387,6 +425,7 @@
       "model": "win",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PWindow",
       "transforms": [
         {
           "type": "translate",
@@ -403,6 +442,14 @@
             90.0,
             0.0
           ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            1.0,
+            0.6,
+            1.0
+          ]
         }
       ]
     },
@@ -411,6 +458,7 @@
       "model": "win",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PWindow",
       "transforms": [
         {
           "type": "translate",
@@ -427,6 +475,14 @@
             90.0,
             0.0
           ]
+        },
+        {
+          "type": "scale",
+          "vec": [
+            1.0,
+            0.6,
+            1.0
+          ]
         }
       ]
     },
@@ -435,6 +491,7 @@
       "model": "closet",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -451,6 +508,7 @@
       "model": "desk",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -483,6 +541,7 @@
       "model": "gdesk",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -499,6 +558,7 @@
       "model": "tv",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -515,6 +575,7 @@
       "model": "ps5",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -531,6 +592,7 @@
       "model": "pad",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -547,6 +609,7 @@
       "model": "gpouf",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -571,6 +634,7 @@
       "model": "door",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -595,6 +659,7 @@
       "model": "clk",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -619,6 +684,7 @@
       "model": "lngchr",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -643,6 +709,7 @@
       "model": "tbl",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -675,6 +742,7 @@
       "model": "spkr",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -707,6 +775,7 @@
       "model": "spkr",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -739,6 +808,7 @@
       "model": "subw",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -771,6 +841,7 @@
       "model": "hdphn",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -795,6 +866,7 @@
       "model": "col",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -819,6 +891,7 @@
       "model": "bed",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -843,6 +916,7 @@
       "model": "rlamp",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PWindow",
       "transforms": [
         {
           "type": "translate",
@@ -859,6 +933,7 @@
       "model": "plant1",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -883,6 +958,7 @@
       "model": "rockpstr",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -907,6 +983,7 @@
       "model": "abspnt",
       "texture": "tpnt",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -939,6 +1016,7 @@
       "model": "fractal",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
@@ -955,6 +1033,7 @@
       "model": "welcomepstr",
       "texture": "tf",
       "layout": "DSLGlobal",
+      "pipeline": "PCookTorrance",
       "transforms": [
         {
           "type": "translate",
