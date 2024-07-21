@@ -127,7 +127,7 @@ protected:
 	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
 	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 2.0f, 4.0f);
+	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.5f, 4.0f);
 	glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
 	glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
 	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.0f);
@@ -136,7 +136,7 @@ protected:
 											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
 											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
 
-	glm::vec3 CROWN_DEFAULT_POSITION = glm::vec3(0.0f, 1.0f, 4.0f);
+	glm::vec3 CROWN_DEFAULT_POSITION = glm::vec3(0.0f, 0.5f, 4.0f);
 	glm::vec3 CROWN_ABOVE_CHAIR = glm::vec3(-5.0f, 1.0f, 7.0f);
 	glm::vec3 CROWN_ABOVE_GDESK = glm::vec3(3.0f, 1.2f, 1.0f);
 	glm::vec3 CROWN_FRONT_DOOR = glm::vec3(-0.5f, 3.0f, 7.0f);
@@ -145,7 +145,7 @@ protected:
 												 CROWN_ABOVE_CHAIR, CROWN_ABOVE_GDESK,
 												 CROWN_FRONT_DOOR, CROWN_ABOVE_PLANT};
 
-	glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 3.0f, 4.0f);
+	glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 2.5f, 4.0f);
 	glm::vec3 THUNDER_ABOVE_SDESK = glm::vec3(5.3f, 1.2f, 2.0f);
 	glm::vec3 THUNDER_FRONT_CLOCK = glm::vec3(-5.5f, 2.0f, 3.0f);
 	glm::vec3 THUNDER_BEHIND_COLUMN = glm::vec3(4.5f, 2.0f, 6.0f);
