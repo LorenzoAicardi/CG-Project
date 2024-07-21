@@ -365,6 +365,12 @@ protected:
 		}
 	}
 
+    void constrainCameraPosition(glm::vec3& camPos, glm::vec3& min, glm::vec3& max){
+        camPos.x = glm::clamp(camPos.x, min.x, max.x);
+        camPos.y = glm::clamp(camPos.y, min.y, max.y);
+        camPos.z = glm::clamp(camPos.z, min.z, max.z);
+    }
+
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) override {
@@ -602,6 +608,8 @@ protected:
 		float camy =
 			-sin(glm::radians(rocketRotation.x + rocketCameraRotation.x)) * radius;
 		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
+
+        constrainCameraPosition(camPos, SC.bbMap["walln"].min, SC.bbMap["walls"].max);
 
 		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
 		// Update mvpMat and map the rocket
