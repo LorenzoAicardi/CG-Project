@@ -83,14 +83,6 @@ protected:
 	DescriptorSet DSCoinCrown;
 	DescriptorSet DSCoinThunder;
 
-	// Textures
-	Texture TFurniture;
-	Texture TCoin;
-	Texture TStack;
-	Texture TRocket;
-	Texture TCoinCrown;
-	Texture TCoinThunder;
-
 	// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
 	UniformBufferObject CoinUbo;
@@ -175,6 +167,7 @@ protected:
 	int coinCrownLocation = 0;
 	int coinThunderLocation = 0;
 	int spotlightOn;
+
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
@@ -681,7 +674,6 @@ protected:
 		if(rocketCameraRotation.y < -89.0f) rocketCameraRotation.y = -89.0f;
 		if(rocketCameraRotation.x < -89.0f) rocketCameraRotation.x = -89.0f;
 		if(rocketCameraRotation.x > 89.0f) rocketCameraRotation.x = 89.0f;
-
 
 		// Update rocket world matrix
 		World = glm::translate(glm::mat4(1.0f), rocketPosition);
