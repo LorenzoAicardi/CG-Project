@@ -409,12 +409,12 @@ protected:
 		gubo.eyePos = camPos;
 
 		// Spotlight
-		gubo.lightDir[2].v = rocketPosition;
-		gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
-		gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
+        gubo.lightDir[2].v = glm::vec3(0.0f);
+        gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
+        gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
 		gubo.eyePos = camPos;
 		gubo.cosIn = cos(30.f);
-		gubo.cosOut = cos(60.f);
+		gubo.cosOut = cos(50.f);
 		gubo.spotlightOn = spotlightOn;
 
 		// Place static objects on scene
