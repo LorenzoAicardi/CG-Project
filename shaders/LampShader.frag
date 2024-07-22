@@ -120,11 +120,12 @@ void main() {
     lightDir = pointLightDir(fragPos, 1);
     lightColor = pointLightColor(fragPos, 1);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
-    L += 0.07f * fresnelTransmittance(cosThetaIn, glassIOR) * lightColor * (1-gubo.spotlightOn);
+    L += 0.1f * fresnelTransmittance(cosThetaIn, glassIOR) * lightColor * (1-gubo.spotlightOn);
 
     lightDir = spot_light_dir(fragPos, 2);
     lightColor = spot_light_color(fragPos, 2);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * gubo.spotlightOn;
+    L += 0.1f * fresnelTransmittance(cosThetaIn, glassIOR) * lightColor * gubo.spotlightOn;
 
     // ambient lighting
     vec3 La = C00 + (norm.x*C11) + (norm.y*C1m1) + (norm.z*C10) + (norm.x*norm.y*C2m2) +

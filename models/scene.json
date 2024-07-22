@@ -916,7 +916,7 @@
       "model": "rlamp",
       "texture": "tf",
       "layout": "DSLGlobal",
-      "pipeline": "PWindow",
+      "pipeline": "PLamp",
       "transforms": [
         {
           "type": "translate",
