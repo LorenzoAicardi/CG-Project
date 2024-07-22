@@ -26,7 +26,7 @@ layout(set = 0, binding = 1) uniform sampler2D tex;
 
 #define PI 3.14159
 
-// coefficients for the spherical harmonics ambient light term
+// coefficients for the spherical harmonics ambient light term (l = 2)
 const vec3 C00  = vec3(.38f, .43f, .45f)/8.0f;
 const vec3 C1m1 = vec3(.29f, .36f, .41f)/8.0f;
 const vec3 C10  = vec3(.04f, .03f, .01f)/8.0f;
@@ -55,12 +55,12 @@ vec3 pointLightColor(vec3 pos, int i) {
     vec3 p = gubo.lightPos[i];
     return gubo.lightColor[i].rgb * pow(g / length(p-pos), beta);
 }
-vec3 spot_light_dir(vec3 pos, int i) {
+vec3 spotLightDir(vec3 pos, int i) {
     return normalize(gubo.lightPos[i] - pos);
 }
 
-vec3 spot_light_color(vec3 pos, int i) {
-    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
+vec3 spotLightColor(vec3 pos, int i) {
+    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spotLightDir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
 }
 
 /**
@@ -106,8 +106,8 @@ void main() {
     lightColor = pointLightColor(fragPos, 1);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
 
-    lightDir = spot_light_dir(fragPos, 2);
-    lightColor = spot_light_color(fragPos, 2);
+    lightDir = spotLightDir(fragPos, 2);
+    lightColor = spotLightColor(fragPos, 2);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * gubo.spotlightOn;
 
     // ambient lighting
