@@ -2,15 +2,18 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// stuff coming from vertex shader
+// Shader input
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
 layout(location = 2) in vec2 fragUV;
 
-// shader output
+// Shader output
 layout(location = 0) out vec4 outColor;
 
-// uniforms
+// Textures
+layout(set = 0, binding = 1) uniform sampler2D tex;
+
+// Uniforms
 layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
     vec3 lightDir[3];
     vec3 lightPos[3];
@@ -22,11 +25,10 @@ layout(set = 0, binding = 2) uniform GlobalUniformBufferObject {
     int spotlightOn;
 } gubo;
 
-layout(set = 0, binding = 1) uniform sampler2D tex;
 
 #define PI 3.14159
 
-// coefficients for the spherical harmonics ambient light term
+// Coefficients for the spherical harmonics ambient light term
 const vec3 C00  = vec3(.38f, .43f, .45f)/8.0f;
 const vec3 C1m1 = vec3(.29f, .36f, .41f)/8.0f;
 const vec3 C10  = vec3(.04f, .03f, .01f)/8.0f;
@@ -55,12 +57,15 @@ vec3 pointLightColor(vec3 pos, int i) {
     vec3 p = gubo.lightPos[i];
     return gubo.lightColor[i].rgb * pow(g / length(p-pos), beta);
 }
-vec3 spot_light_dir(vec3 pos, int i) {
+vec3 spotLightDir(vec3 pos, int i) {
     return normalize(gubo.lightPos[i] - pos);
 }
 
-vec3 spot_light_color(vec3 pos, int i) {
-    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spot_light_dir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
+vec3 spotLightColor(vec3 pos, int i) {
+    vec3 baseColor = pointLightColor(pos, i);
+    vec3 lx = spotLightDir(pos, i);
+    vec3 d = gubo.lightDir[i];
+    return baseColor * clamp((dot(lx, d) - gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0.0, 1.0);
 }
 
 /**
@@ -108,11 +113,11 @@ void main() {
     vec3 norm = normalize(fragNorm);
     vec3 eyeDir = normalize(gubo.eyePos - fragPos);
     vec3 albedo = texture(tex, fragUV).rgb;
-    vec3 L = vec3(0);// solution of rendering equation
+    vec3 L = vec3(0);// Solution of rendering equation
     float glassIOR = 1.52f;
     float cosThetaIn = dot(eyeDir, norm);
 
-    // lights
+    // Lights
     vec3 lightDir = directLightDir(fragPos, 0);
     vec3 lightColor = directLightColor(fragPos, 0);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
@@ -122,11 +127,11 @@ void main() {
     lightColor = pointLightColor(fragPos, 1);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * (1-gubo.spotlightOn);
 
-    lightDir = spot_light_dir(fragPos, 2);
-    lightColor = spot_light_color(fragPos, 2);
+    lightDir = spotLightDir(fragPos, 2);
+    lightColor = spotLightColor(fragPos, 2);
     L += BRDF(albedo, norm, eyeDir, lightDir) * lightColor * gubo.spotlightOn;
 
-    // ambient lighting
+    // Ambient lighting
     vec3 La = C00 + (norm.x*C11) + (norm.y*C1m1) + (norm.z*C10) + (norm.x*norm.y*C2m2) +
     (norm.y*norm.z*C1m1) + (norm.z*norm.x*C11) + ((norm.x*norm.x - norm.y*norm.y) * C22) +
     ((3*norm.z*norm.z - 1) * C20);
