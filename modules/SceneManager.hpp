@@ -62,6 +62,11 @@ public:
 
 class LayoutInterpreter {
 public:
+	/**
+	 * Build DSLs from recipe directives
+	 * @param bindings json array describing bindings
+	 * @return array of DSLs
+	 */
 	static std::vector<DescriptorSetLayoutBinding> getBindings(nlohmann::json bindings) {
 		int numBindings = bindings.size();
 		std::vector<DescriptorSetLayoutBinding> res(numBindings);
@@ -90,8 +95,10 @@ public:
 	}
 };
 
-/// number of buffer objects, textures and descriptors
-/// to allocate
+/**
+ * Number of buffer objects, textures and descriptors
+ * to allocate
+ */
 struct ResourceAmount {
 	int uboInPool;
 	int textureInPool;
@@ -102,43 +109,51 @@ struct ResourceAmount {
 
 /**
  * Handle scene initialization and
- * object placement
+ * object placement.
+ * In particular, the following elements' lifecycle
+ * is handled:
+ * Pipelines
+ * DSLs
+ * DSs
+ * Textures
+ * Models
  */
 template<class Vert>
 class SceneManager {
 public:
-	VertexDescriptor *VD;
-
 	BaseProject *BP;
 
-	// Layouts
+	VertexDescriptor *VD;
+
+	/// Layouts
 	int LayoutCount = 0;
 	DescriptorSetLayout **DSL;
 	std::unordered_map<std::string, int> LayoutIds;
 
-	// Models
+	/// Models
 	int ModelCount = 0;
 	Model<Vert> **M;
 	std::unordered_map<std::string, int> MeshIds;
 	std::unordered_map<std::string, std::vector<glm::vec3>> vecMap;
 	std::unordered_map<std::string, BoundingBox> bbMap;
 
-	// Textures
+	/// Textures
 	int TextureCount = 0;
 	Texture **T;
 	std::unordered_map<std::string, int> TextureIds;
 
-	// Descriptor sets and instances
+	/// Descriptor sets and instances
 	int InstanceCount = 0;
 	DescriptorSet **DS;
 	Instance *I;
 	std::unordered_map<std::string, int> InstanceIds;
 
-	// Pipelines
+	/// Pipelines
 	Pipeline **P;
 	int PipelineCount = 0;
 	std::unordered_map<std::string, int> PipelineIds;
 
+	/// Resource counter
 	ResourceAmount resCtr;
 
 	void countResources(std::string file) {
@@ -177,6 +192,7 @@ public:
 			ifs >> js;
 			ifs.close();
 
+			// Layouts
 			nlohmann::json ly = js["layouts"];
 			LayoutCount = ly.size();
 			std::cout << "Layout count: " << LayoutCount << "\n";
@@ -315,6 +331,7 @@ public:
 		std::unordered_map<std::string, std::vector<DescriptorSetElement>> dsInst) {
 		// Assumed to always exist
 		auto defaultBinding = dsInst["default"];
+
 		for(auto inst : InstanceIds) {
 			int i = inst.second;
 			DS[i] = new DescriptorSet();
