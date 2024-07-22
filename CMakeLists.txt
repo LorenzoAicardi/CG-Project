@@ -14,7 +14,7 @@ list(APPEND INCLUDE_DIRS "${GLFW_INCLUDE_DIR}" headers)
 #########################################################
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(CG-Project main.cpp modules/Starter.hpp modules/TextMaker.hpp
+add_executable(CG-Project main.cpp modules/Starter.hpp
         modules/SceneManager.hpp)
 
 find_package(Vulkan REQUIRED)
