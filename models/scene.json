@@ -47,9 +47,9 @@
       "layout": "DSLGlobal"
     },
     {
-      "name": "PToon",
-      "vert": "shaders/ToonShaderVert.spv",
-      "frag": "shaders/ToonShaderFrag.spv",
+      "name": "PRocket",
+      "vert": "shaders/RocketShaderVert.spv",
+      "frag": "shaders/RocketShaderFrag.spv",
       "layout": "DSLRoughness"
     },
     {
