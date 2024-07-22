@@ -60,8 +60,14 @@ vec3 spotLightDir(vec3 pos, int i) {
 }
 
 vec3 spotLightColor(vec3 pos, int i) {
-    return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spotLightDir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
+    vec3 baseColor = pointLightColor(pos, i);
+    vec3 lx = spotLightDir(pos, i);
+    vec3 d = gubo.lightDir[i];
+    return baseColor * clamp((dot(lx, d) - gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0.0, 1.0);
+
+    //return pow(gubo.lightColor[i].a/length(gubo.lightPos[i]-pos), 2.0f)*gubo.lightColor[i].rgb * clamp((dot(spotLightDir(pos, i), gubo.lightDir[i])- gubo.cosOut) / (gubo.cosIn - gubo.cosOut), 0, 1);
 }
+
 
 /**
  * compute the g_ggx() value for the G term
