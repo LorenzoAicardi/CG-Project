@@ -1,7 +1,5 @@
 # Toy Rocket
 
----
-
 Computer graphics project developed for the Computer Graphics course 2023/2024.
 
 **Contributors**: \
