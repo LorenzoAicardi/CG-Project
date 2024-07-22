@@ -598,7 +598,6 @@ protected:
 		if(isCollision) {
 			switch(SC.bbMap[collisionId].cType) {
 				case OBJECT: {
-					std::cout << "colliding with " << collisionId << std::endl;
 					// Compute the closest point on the AABB to the sphere center
 					glm::vec3 closestPoint =
 						glm::clamp(rocketPosition, SC.bbMap[collisionId].min,
@@ -630,15 +629,10 @@ protected:
 				case COLLECTIBLE: {
 					if(collisionId == "coin") {
 						coinLocation = (std::rand() % (4 - 0 + 1));
-						std::cout << "Coin location: " << coinLocation << std::endl;
 					} else if(collisionId == "coinCrown") {
 						coinCrownLocation = (std::rand() % (4 - 0 + 1));
-						std::cout << "Coin Crown location: " << coinCrownLocation
-								  << std::endl;
 					} else {
 						coinThunderLocation = (std::rand() % (4 - 0 + 1));
-						std::cout << "Coin Thunder location: " << coinThunderLocation
-								  << std::endl;
 					}
 					SC.bbMap.erase(collisionId);
 					break;
@@ -668,10 +662,8 @@ protected:
 				spotlightOn = 1 - spotlightOn;
 				gubo.spotlightOn = spotlightOn;
 				debounce = true;
-				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
 			} else if(debounce && currentKey == previousKey) {
 				debounce = false;
-				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
 			}
 		} else {
 			currentKey = false;
