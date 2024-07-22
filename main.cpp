@@ -93,62 +93,64 @@ protected:
 
 	// Definition of variables needed for rocket movement, coin placing and
 	// general game logic
-	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
-	glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	SphereCollider rocketCollider;
-	RocketState rocketState = MOVING;
-	glm::vec3 restingPosition;
 	const float MOVE_SPEED = 5.0f;
-	glm::mat4 Scale = glm::scale(glm::mat4(1.0), glm::vec3(1, 1, 1));
-	glm::mat4 Rotate = glm::rotate(glm::mat4(1.0), 0.0f, glm::vec3(0, 0, 1));
-	float verticalSpeed = 0.0f;
-	glm::vec3 rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
-	float rocketRotHor = 0.0f;
-	float rocketRotVert = 0.0f;
-	bool wasGoingRight = false;
-	bool wasGoingUp = false;
-	float GRAVITY_CONSTANT = 0.1f;
-	float COIN_ROT_SPEED = 2.0f;
-	float CoinRot = 0.0f;
+	glm::vec3 rocketPosition;
+	glm::vec3 rocketDirection;
+	glm::vec3 rocketRotation;
+	SphereCollider rocketCollider;
+	RocketState rocketState;
+	glm::vec3 restingPosition;
+	float rocketVerticalSpeed;
+	glm::vec3 rocketSpeed;
+	float rocketRotHor;
+	float rocketRotVert;
+	bool wasGoingRight;
+	bool wasGoingUp;
 
-	float deltaT = 0.016f;
+	const float GRAVITY_CONSTANT = 0.1f;
 
-	glm::mat4 View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
-	glm::vec3 camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
-	glm::vec3 rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	const float deltaT = 0.016f;
 
-	glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.5f, 4.0f);
-	glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
-	glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
-	glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.0f);
-	glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
-	std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
-											BETWEEN_BED_AND_CLOSET, ABOVE_CLOSET,
-											ABOVE_RECORD_TABLE, BEHIND_RED_COLUMN};
+	glm::mat4 View;
+	glm::vec3 camPos;
+	glm::vec3 rocketCameraRotation;
 
-	glm::vec3 CROWN_DEFAULT_POSITION = glm::vec3(0.0f, 0.5f, 4.0f);
-	glm::vec3 CROWN_ABOVE_CHAIR = glm::vec3(-5.0f, 1.0f, 7.0f);
-	glm::vec3 CROWN_ABOVE_GDESK = glm::vec3(3.0f, 1.2f, 1.0f);
-	glm::vec3 CROWN_FRONT_DOOR = glm::vec3(-0.5f, 3.0f, 7.0f);
-	glm::vec3 CROWN_ABOVE_PLANT = glm::vec3(5.5f, 1.4f, 7.5f);
-	std::vector<glm::vec3> coinCrownLocations = {CROWN_DEFAULT_POSITION,
-												 CROWN_ABOVE_CHAIR, CROWN_ABOVE_GDESK,
-												 CROWN_FRONT_DOOR, CROWN_ABOVE_PLANT};
+	const glm::vec3 DEFAULT_POSITION = glm::vec3(0.0f, 1.5f, 4.0f);
+	const glm::vec3 BETWEEN_BED_AND_CLOSET = glm::vec3(-2.0f, 0.5f, 1.0f);
+	const glm::vec3 ABOVE_CLOSET = glm::vec3(-1.0f, 3.0f, 0.4f);
+	const glm::vec3 ABOVE_RECORD_TABLE = glm::vec3(-3.0f, 2.0f, 7.0f);
+	const glm::vec3 BEHIND_RED_COLUMN = glm::vec3(5.0f, 2.0f, 7.0f);
+	const std::vector<glm::vec3> coinLocations = {DEFAULT_POSITION,
+												  BETWEEN_BED_AND_CLOSET,
+												  ABOVE_CLOSET, ABOVE_RECORD_TABLE,
+												  BEHIND_RED_COLUMN};
 
-	glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 2.5f, 4.0f);
-	glm::vec3 THUNDER_ABOVE_SDESK = glm::vec3(5.3f, 1.2f, 2.0f);
-	glm::vec3 THUNDER_FRONT_CLOCK = glm::vec3(-5.5f, 2.0f, 3.0f);
-	glm::vec3 THUNDER_BEHIND_COLUMN = glm::vec3(4.5f, 2.0f, 6.0f);
-	glm::vec3 THUNDER_ABOVE_PS5 = glm::vec3(2.4f, 1.5f, 0.55f);
-	std::vector<glm::vec3> coinThunderLocations = {THUNDER_DEFAULT_POSITION,
-												   THUNDER_ABOVE_SDESK,
-												   THUNDER_FRONT_CLOCK,
-												   THUNDER_BEHIND_COLUMN,
-												   THUNDER_ABOVE_PS5};
-	int coinLocation = 0;
-	int coinCrownLocation = 0;
-	int coinThunderLocation = 0;
+	const glm::vec3 CROWN_DEFAULT_POSITION = glm::vec3(0.0f, 0.5f, 4.0f);
+	const glm::vec3 CROWN_ABOVE_CHAIR = glm::vec3(-5.0f, 1.0f, 7.0f);
+	const glm::vec3 CROWN_ABOVE_GDESK = glm::vec3(3.0f, 1.2f, 1.0f);
+	const glm::vec3 CROWN_FRONT_DOOR = glm::vec3(-0.5f, 3.0f, 7.0f);
+	const glm::vec3 CROWN_ABOVE_PLANT = glm::vec3(5.5f, 1.4f, 7.5f);
+	const std::vector<glm::vec3> coinCrownLocations = {CROWN_DEFAULT_POSITION,
+													   CROWN_ABOVE_CHAIR,
+													   CROWN_ABOVE_GDESK,
+													   CROWN_FRONT_DOOR,
+													   CROWN_ABOVE_PLANT};
+
+	const glm::vec3 THUNDER_DEFAULT_POSITION = glm::vec3(0.0f, 2.5f, 4.0f);
+	const glm::vec3 THUNDER_ABOVE_SDESK = glm::vec3(5.3f, 1.2f, 2.0f);
+	const glm::vec3 THUNDER_FRONT_CLOCK = glm::vec3(-5.5f, 2.0f, 3.0f);
+	const glm::vec3 THUNDER_BEHIND_COLUMN = glm::vec3(4.5f, 2.0f, 6.0f);
+	const glm::vec3 THUNDER_ABOVE_PS5 = glm::vec3(2.4f, 1.5f, 0.55f);
+	const std::vector<glm::vec3> coinThunderLocations = {THUNDER_DEFAULT_POSITION,
+														 THUNDER_ABOVE_SDESK,
+														 THUNDER_FRONT_CLOCK,
+														 THUNDER_BEHIND_COLUMN,
+														 THUNDER_ABOVE_PS5};
+	const float COIN_ROT_SPEED = 2.0f;
+	float coinRot;
+	int coinLocation;
+	int coinCrownLocation;
+	int coinThunderLocation;
 	int spotlightOn;
 
 	void localInit() override {
@@ -177,9 +179,31 @@ protected:
 						  "coinThunder", SC.vecMap);
 
 		// Init local variables
+
+		// Rocket parameters
+		rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
+		rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+		rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+		rocketState = MOVING;
+		rocketVerticalSpeed = 0.0f;
+		rocketSpeed = glm::vec3(0.0f, 0.0f, 0.0f);
+		rocketRotHor = 0.0f;
+		rocketRotVert = 0.0f;
+		wasGoingRight = false;
+		wasGoingUp = false;
 		rocketCollider.center = rocketPosition;
 		rocketCollider.radius = 0.05f;
 
+		// Camera parameters
+		camPos = rocketPosition + glm::vec3(6, 3, 10) / 2.0f;
+		rocketCameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
+
+		// Coin parameters
+		coinRot = 0.0f;
+		coinLocation = 0;
+		coinCrownLocation = 0;
+		coinThunderLocation = 0;
 		spotlightOn = 0;
 	}
 
@@ -479,13 +503,13 @@ protected:
 		}
 
 		// Place coin
-		CoinRot += COIN_ROT_SPEED * deltaT;
-		if(CoinRot > 360.0f) CoinRot = 0.0f;
+		coinRot += COIN_ROT_SPEED * deltaT;
+		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
-		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
+		World *= glm::rotate(glm::mat4(1.0f), coinRot, glm::vec3(0.0f, 0.0f, 1.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinUbo.mMat = baseTrans * World;
 		CoinUbo.mvpMat = ViewPrj * World;
@@ -495,13 +519,13 @@ protected:
 		DSCoin.map(currentImage, &gubo, sizeof(gubo), 3);
 
 		// Place crown coin
-		CoinRot += COIN_ROT_SPEED * deltaT;
-		if(CoinRot > 360.0f) CoinRot = 0.0f;
+		coinRot += COIN_ROT_SPEED * deltaT;
+		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f), coinCrownLocations[coinCrownLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
-		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
+		World *= glm::rotate(glm::mat4(1.0f), coinRot, glm::vec3(0.0f, 0.0f, 1.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinCrownUbo.mMat = baseTrans * World;
 		CoinCrownUbo.mvpMat = ViewPrj * World;
@@ -512,14 +536,14 @@ protected:
 
 
 		// Place thunder coin
-		CoinRot += COIN_ROT_SPEED * deltaT;
-		if(CoinRot > 360.0f) CoinRot = 0.0f;
+		coinRot += COIN_ROT_SPEED * deltaT;
+		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f),
 							   coinThunderLocations[coinThunderLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
-		World *= glm::rotate(glm::mat4(1.0f), CoinRot, glm::vec3(0.0f, 0.0f, 1.0f));
+		World *= glm::rotate(glm::mat4(1.0f), coinRot, glm::vec3(0.0f, 0.0f, 1.0f));
 		World *= glm::scale(glm::mat4(1), glm::vec3(0.003f, 0.003f, 0.003f));
 		CoinThunderUbo.mMat = baseTrans * World;
 		CoinThunderUbo.mvpMat = ViewPrj * World;
@@ -564,9 +588,9 @@ protected:
 
 		// Gravity (gravity constant can be lowered)
 		if(rocketState == MOVING) {	 // If the rocket is falling apply gravity
-			verticalSpeed += GRAVITY_CONSTANT * deltaT;
+			rocketVerticalSpeed += GRAVITY_CONSTANT * deltaT;
 			// Set terminal fall speed
-			verticalSpeed = glm::max(verticalSpeed, 0.1f);
+			rocketVerticalSpeed = glm::max(rocketVerticalSpeed, 0.1f);
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
@@ -592,7 +616,7 @@ protected:
 			// Reset direction to avoid permanently going in the same direction
 			rocketDirection = {0, 0, 0};
 			// "Cancel" gravity while accelerating
-			verticalSpeed = 0.0f;
+			rocketVerticalSpeed = 0.0f;
 		}
 
 		if(isCollision) {
@@ -643,7 +667,7 @@ protected:
 		if(rocketState == RESTING) {
 			rocketPosition = restingPosition;
 		} else {
-			rocketSpeed.y -= verticalSpeed;
+			rocketSpeed.y -= rocketVerticalSpeed;
 			rocketSpeed.y = glm::max(rocketSpeed.y, -1.75f);
 			rocketPosition += rocketSpeed * deltaT;
 		}
