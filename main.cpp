@@ -107,7 +107,11 @@ protected:
 
 	const float GRAVITY_CONSTANT = 0.1f;
 
-	const float deltaT = 0.016f;
+	// Time resolution for simulations
+	const float DELTA_T = 0.016f;
+	const float TURN_TIME = 36.0f;
+	// Angular velocity of ambient light
+	const float LIGHT_ROT_SPEED = 2.0f * M_PI / TURN_TIME;
 
 	glm::mat4 View;
 	glm::vec3 camPos;
@@ -362,7 +366,7 @@ protected:
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			rocketRotation.x -= 1.0f;
 			if(wasGoingUp) {
-				rocketRotVert -= 120.0 * deltaT;
+				rocketRotVert -= 120.0 * DELTA_T;
 				rocketRotVert = glm::max(rocketRotVert, -20.0f);
 			} else {
 				wasGoingUp = true;
@@ -371,7 +375,7 @@ protected:
 		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			rocketRotation.x += 1.0f;
 			if(!wasGoingUp) {
-				rocketRotVert += 120.0 * deltaT;
+				rocketRotVert += 120.0 * DELTA_T;
 				rocketRotVert = glm::min(rocketRotVert, 20.0f);
 			} else {
 				wasGoingUp = false;
@@ -380,7 +384,7 @@ protected:
 		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			rocketRotation.y += 1.0f;
 			if(!wasGoingRight) {
-				rocketRotHor += 120.0f * deltaT;
+				rocketRotHor += 120.0f * DELTA_T;
 				rocketRotHor = glm::min(rocketRotHor, 20.0f);
 			} else {
 				wasGoingRight = false;
@@ -389,7 +393,7 @@ protected:
 		if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			rocketRotation.y -= 1.0f;
 			if(wasGoingRight) {
-				rocketRotHor -= 120.0 * deltaT;
+				rocketRotHor -= 120.0 * DELTA_T;
 				rocketRotHor = glm::max(rocketRotHor, -20.0f);
 			} else {
 				wasGoingRight = true;
@@ -437,20 +441,12 @@ protected:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
-		// Integration with the timers and controllers
-		static float cTime = 0.0;
-		const float turnTime = 36.0f;
-		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
-		cTime = cTime + deltaT;
-		cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
-
 		// Parameters for the projection
-		// Camera FOV-y, Near Plane and Far Plane
-		const float FOVy = glm::radians(90.0f);
-		const float nearPlane = 0.1f;
-		const float farPlane = 100.0f;
+		const float FOV_Y = glm::radians(90.0f);
+		const float NEAR_PLANE = 0.1f;
+		const float FAR_PLANE = 100.0f;
 
-		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
+		glm::mat4 Prj = glm::perspective(FOV_Y, Ar, NEAR_PLANE, FAR_PLANE);
 		Prj[1][1] *= -1;
 
 		glm::mat4 baseTrans = glm::mat4(1.0f);
@@ -459,11 +455,21 @@ protected:
 
 		// Update global uniforms (lighting)
 		GlobalUniformBufferObject gubo{};
+		static float cTime = 0.0;
+		// Automatically rotate ambient light
+		cTime = cTime + DELTA_T;
+		cTime = (cTime > TURN_TIME) ? (cTime - TURN_TIME) : cTime;
+
+		if(glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+			cTime += LIGHT_ROT_SPEED;
+		if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+			cTime -= LIGHT_ROT_SPEED;
 
 		// Direct light
 		gubo.lightDir[0].v =
-			glm::vec3(cos(glm::radians(0.0f)), sin(glm::radians(0.0f)),
-					  cos(glm::radians(100.0f)));
+			glm::vec3(cos(glm::radians(0.0f)) * cos(cTime * LIGHT_ROT_SPEED),
+					  sin(glm::radians(0.0f)),
+					  cos(glm::radians(100.0f)) * sin(cTime * LIGHT_ROT_SPEED));
 		gubo.lightPos[0].v = glm::vec3(7.0f, 2.5f, 2.0f);
 		gubo.lightColor[0] = glm::vec4(0.99f, 0.42f, 0.33f, 1.0f);
 
@@ -501,7 +507,7 @@ protected:
 		}
 
 		// Place coin
-		coinRot += COIN_ROT_SPEED * deltaT;
+		coinRot += COIN_ROT_SPEED * DELTA_T;
 		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
@@ -517,7 +523,7 @@ protected:
 		DSCoin.map(currentImage, &gubo, sizeof(gubo), 3);
 
 		// Place crown coin
-		coinRot += COIN_ROT_SPEED * deltaT;
+		coinRot += COIN_ROT_SPEED * DELTA_T;
 		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f), coinCrownLocations[coinCrownLocation]);
@@ -534,7 +540,7 @@ protected:
 
 
 		// Place thunder coin
-		coinRot += COIN_ROT_SPEED * deltaT;
+		coinRot += COIN_ROT_SPEED * DELTA_T;
 		if(coinRot > 360.0f) coinRot = 0.0f;
 
 		World = glm::translate(glm::mat4(1.0f),
@@ -568,25 +574,25 @@ protected:
 		// Stabilize the rocket in both vertical and horizontal planes
 		if(rocketRotHor <= -3.0f || rocketRotHor >= 3.0f) {
 			if(wasGoingRight)
-				rocketRotHor += glm::exp(-20.0 * deltaT), (double)20.0f;
+				rocketRotHor += glm::exp(-20.0 * DELTA_T), (double)20.0f;
 			else
-				rocketRotHor -= glm::exp(-20.0 * deltaT), (double)-20.0f;
+				rocketRotHor -= glm::exp(-20.0 * DELTA_T), (double)-20.0f;
 
 			// Keep the angle confined to avoid complete turns
 			rocketRotHor = glm::clamp(rocketRotHor, -20.0f, 20.0f);
 		}
 		if(rocketRotVert <= -3.0f || rocketRotVert >= 3.0f) {
 			if(wasGoingUp)
-				rocketRotVert += glm::min(glm::exp(-20.0 * deltaT), (double)20.0f);
+				rocketRotVert += glm::min(glm::exp(-20.0 * DELTA_T), (double)20.0f);
 			else
-				rocketRotVert -= glm::max(glm::exp(-20.0 * deltaT), (double)-20.0f);
+				rocketRotVert -= glm::max(glm::exp(-20.0 * DELTA_T), (double)-20.0f);
 
 			rocketRotVert = glm::clamp(rocketRotVert, -20.0f, 20.0f);
 		}
 
 		// Gravity (gravity constant can be lowered)
 		if(rocketState == MOVING) {	 // If the rocket is falling apply gravity
-			rocketVerticalSpeed += GRAVITY_CONSTANT * deltaT;
+			rocketVerticalSpeed += GRAVITY_CONSTANT * DELTA_T;
 			// Set terminal fall speed
 			rocketVerticalSpeed = glm::max(rocketVerticalSpeed, 0.1f);
 		}
@@ -603,7 +609,7 @@ protected:
 			glm::vec3 newRocketDirection =
 				glm::vec3(rocketRotationMatrix * glm::vec4(rocketDirection, 0.0f));
 
-			rocketSpeed += newRocketDirection * MOVE_SPEED * deltaT;
+			rocketSpeed += newRocketDirection * MOVE_SPEED * DELTA_T;
 
 			// Cap maximum speed
 			if(glm::length(rocketSpeed) > 1.0f)
@@ -667,7 +673,7 @@ protected:
 		} else {
 			rocketSpeed.y -= rocketVerticalSpeed;
 			rocketSpeed.y = glm::max(rocketSpeed.y, -1.75f);
-			rocketPosition += rocketSpeed * deltaT;
+			rocketPosition += rocketSpeed * DELTA_T;
 		}
 
 		// Prevent crazy bugs
