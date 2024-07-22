@@ -1,5 +1,3 @@
-// This has been adapted from the Vulkan tutorial
-
 #include "modules/SceneManager.hpp"
 
 struct UniformBufferObject {
