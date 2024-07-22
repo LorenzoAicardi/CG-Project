@@ -2,14 +2,6 @@
 
 #include "modules/SceneManager.hpp"
 
-// The uniform buffer objects data structures
-// Remember to use the correct alignas(...) value
-//        float : alignas(4)
-//        vec2  : alignas(8)
-//        vec3  : alignas(16)
-//        vec4  : alignas(16)
-//        mat3  : alignas(16)
-//        mat4  : alignas(16)
 struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat;
@@ -51,40 +43,37 @@ bool previousKey = false;
 
 class ConfigManager : public BaseProject {
 protected:
-	// Current aspect ratio (used by the callback that resized the window)
+	/// Current aspect ratio (used by the callback that resized the window)
 	float Ar;
 
-	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL;
-
+	/// Handle lifecycle of static elements of the scene
 	SceneManager<Vertex> SC;
 
-	// Vertex formats
+	/// Vertex formats
 	VertexDescriptor VD;
 
-	// Models, textures and Descriptors (values assigned to the uniforms)
-	// Please note that Model objects depends on the corresponding vertex
-	// structure Models
+	/// Models, textures and Descriptors (values assigned to the uniforms)
 	Model<Vertex> MRocket;
 	Model<Vertex> MCoin;
 	Model<Vertex> MCoinCrown;
 	Model<Vertex> MCoinThunder;
 
-	// Descriptor sets
+	/// Descriptor sets
 	DescriptorSet DSRocket;
 	DescriptorSet DSCoin;
 	DescriptorSet DSCoinCrown;
 	DescriptorSet DSCoinThunder;
 
-	// C++ storage for uniform variables
+	/// C++ storage for uniform variables
 	UniformBufferObject RocketUbo;
 	UniformBufferObject CoinUbo;
 	UniformBufferObject CoinCrownUbo;
 	UniformBufferObject CoinThunderUbo;
 
-	// Here you set the main application parameters
+	/**
+	 * Here you set the main application parameters
+	 */
 	void setWindowParameters() override {
-		// window size, titile and initial background
 		windowWidth = 1920;
 		windowHeight = 1080;
 		windowTitle = "Project";
@@ -100,11 +89,10 @@ protected:
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
 
-	// What to do when the window changes size
 	void onWindowResize(int w, int h) override { Ar = (float)w / (float)h; }
 
-	// Here you load and setup all your Vulkan Models and Texutures.
-	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
+	// Definition of variables needed for rocket movement, coin placing and
+	// general game logic
 	glm::vec3 rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 	glm::vec3 rocketDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 rocketRotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -166,7 +154,8 @@ protected:
 	void localInit() override {
 		// Init descriptor layouts [what will be passed to the shaders]
 		SC.initLayouts(this, "models/scene.json");
-		// init vertex descriptors
+
+		// Init vertex descriptors
 		VD.init(this, {{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}},
 				{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
 				  sizeof(glm::vec3), POSITION},
@@ -176,15 +165,6 @@ protected:
 				  sizeof(glm::vec2), UV}});
 
 		// Init pipelines
-		// PCookTorrance.init(this, &VD, "shaders/CookTorranceShaderVert.spv",
-		// 				   "shaders/CookTorranceShaderFrag.spv",
-		// 				   {SC.DSL[SC.LayoutIds["DSLGlobal"]]});
-		// PToon.init(this, &VD, "shaders/ToonShaderVert.spv",
-		// 		   "shaders/ToonShaderFrag.spv",
-		// 		   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
-		// PCoin.init(this, &VD, "shaders/CoinShaderVert.spv",
-		// 		   "shaders/CoinShaderFrag.spv",
-		// 		   {SC.DSL[SC.LayoutIds["DSLRoughness"]]});
 		SC.initPipelines(this, &VD, "models/scene.json");
 
 		// Init scene (models & textures)
@@ -206,6 +186,7 @@ protected:
 	void pipelinesAndDescriptorSetsInit() override {
 		SC.createPipelines();
 
+		// Set a default binding and specify exceptions
 		std::unordered_map<std::string, std::vector<DescriptorSetElement>> bindings;
 		bindings["default"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 							   {1, TEXTURE, 0, SC.T[0]},
@@ -225,10 +206,12 @@ protected:
 							{1, TEXTURE, 0, SC.T[3]},
 							{2, TEXTURE, 0, SC.T[4]},
 							{3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+
 		bindings["coinCrown"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 								 {1, TEXTURE, 0, SC.T[5]},
 								 {2, TEXTURE, 0, SC.T[6]},
 								 {3, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}};
+
 		bindings["coinThunder"] = {{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 								   {1, TEXTURE, 0, SC.T[7]},
 								   {2, TEXTURE, 0, SC.T[8]},
@@ -244,10 +227,8 @@ protected:
 						   bindings["coinThunder"]);
 	}
 
-	// Here you destroy your pipelines and Descriptor Sets!
-	// All the object classes defined in Starter.hpp have a method .cleanup() for this purpose
 	void pipelinesAndDescriptorSetsCleanup() override {
-		// cleanup pipelines & descriptor sets
+		// Cleanup pipelines & descriptor sets
 		SC.pipelinesAndDescriptorSetsCleanup();
 		DSRocket.cleanup();
 		DSCoin.cleanup();
@@ -255,12 +236,8 @@ protected:
 		DSCoinThunder.cleanup();
 	}
 
-	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
-	// All the object classes defined in Starter.hpp have a method .cleanup() for this purpose
-	// You also have to destroy the pipelines: since they need to be rebuilt, they have two different
-	// methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() override {
-		// cleanup textures, models, layouts & pipelines
+		// Cleanup textures, models, layouts & pipelines
 		SC.localCleanup();
 		MRocket.cleanup();
 		MCoin.cleanup();
@@ -268,15 +245,16 @@ protected:
 		MCoinThunder.cleanup();
 	}
 
-	// Here is the creation of the command buffer:
-	// You send to the GPU all the objects you want to draw,
-	// with their buffers and textures
+	/**
+	 * Here is the creation of the command buffer:
+	 * You send to the GPU all the objects you want to draw,
+	 * with their buffers and textures
+	 */
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) override {
-		// binds the pipeline
+		// Binds the pipeline
 		SC.P[SC.PipelineIds["PCookTorrance"]]->bind(commandBuffer);
-		// for a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 
-		// binds the data sets
+		// Binds the data sets
 		SC.populateCommandBuffer(commandBuffer, currentImage);
 
 		SC.P[SC.PipelineIds["PCoin"]]->bind(commandBuffer);
@@ -284,6 +262,7 @@ protected:
 		DSCoin.bind(commandBuffer, *SC.P[SC.PipelineIds["PCoin"]], 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCoin.indices.size()), 1, 0, 0, 0);
+
 		SC.P[SC.PipelineIds["PCoin"]]->bind(commandBuffer);
 		MCoinCrown.bind(commandBuffer);
 		DSCoinCrown.bind(commandBuffer, *SC.P[SC.PipelineIds["PCoin"]], 0, currentImage);
@@ -306,7 +285,9 @@ protected:
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
 
-	// Helper function for checking collisions
+	/**
+	 * Helper function for checking collisions
+	 */
 	bool checkCollision(const SphereCollider& sphere, const BoundingBox& box) {
 		float x = glm::max(box.min.x, glm::min(sphere.center.x, box.max.x));
 		float y = glm::max(box.min.y, glm::min(sphere.center.y, box.max.y));
@@ -319,6 +300,13 @@ protected:
 		return distance < sphere.radius;
 	}
 
+	/**
+	 * Place a bounding box on scene
+	 * @param mId id of the model in the scene
+	 * @param iId id of the model instance in the scene
+	 * @param World world matrix of colliding mesh
+	 * @param bbMap table of bounding boxes <iId, bbox>
+	 */
 	void placeObject(std::string mId, std::string iId, glm::mat4& World,
 					 std::unordered_map<std::string, BoundingBox>& bbMap) {
 		if(bbMap.find(iId) == bbMap.end()) {
@@ -345,9 +333,11 @@ protected:
 		}
 	}
 
+	/**
+	 * Get keyboard directional keys (WASD)
+	 */
 	void getDirection() {
 		if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			std::cout << "W SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.x -= 1.0f;
 			if(wasGoingUp) {
 				rocketRotVert -= 120.0 * deltaT;
@@ -357,7 +347,6 @@ protected:
 			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			std::cout << "S SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.x += 1.0f;
 			if(!wasGoingUp) {
 				rocketRotVert += 120.0 * deltaT;
@@ -367,7 +356,6 @@ protected:
 			}
 		}
 		if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			std::cout << "D SET DEBOUNCE  " << debounce << "\n";
 			rocketRotation.y += 1.0f;
 			if(!wasGoingRight) {
 				rocketRotHor += 120.0f * deltaT;
@@ -387,6 +375,9 @@ protected:
 		}
 	}
 
+	/**
+	 * Get keyboard camera directional keys (arrows)
+	 */
 	void getCameraControls() {
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 			rocketCameraRotation.y -= 1.0f;
@@ -402,23 +393,28 @@ protected:
 		}
 	}
 
+	/**
+	 * Avoid camera to go outside the scene
+	 * @param camPos current position of camera
+	 * @param min bbox min of left view limit
+	 * @param max bbox max of right view limit
+	 */
 	void constrainCameraPosition(glm::vec3& camPos, glm::vec3& min, glm::vec3& max) {
 		camPos.x = glm::clamp(camPos.x, min.x, max.x);
 		camPos.y = glm::clamp(camPos.y, min.y, max.y);
 		camPos.z = glm::clamp(camPos.z, min.z, max.z);
 	}
 
-	// Here is where you update the uniforms.
-	// Very likely this will be where you will be writing the logic of
-	// your application.
+	/**
+	 * Here is where you update the uniforms.
+	 * Very likely this will be where you will be writing the logic of
+	 * your application.
+	 */
 	void updateUniformBuffer(uint32_t currentImage) override {
-
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-			/*if(debounce){
-				debounce = false;
-			}			std::cout << "ESCAPE1 SET DEBOUNCE  " << debounce << "\n";*/
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+
 		// Integration with the timers and controllers
 		static float cTime = 0.0;
 		const float turnTime = 36.0f;
@@ -441,6 +437,7 @@ protected:
 
 		// Update global uniforms (lighting)
 		GlobalUniformBufferObject gubo{};
+
 		// Direct light
 		gubo.lightDir[0].v =
 			glm::vec3(cos(glm::radians(0.0f)), sin(glm::radians(0.0f)),
@@ -456,7 +453,7 @@ protected:
 		gubo.eyeDir.w = 1.0f;
 		gubo.eyePos = camPos;
 
-		// Spotlight
+		// Spot light
 		gubo.lightDir[2].v = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
 		gubo.lightPos[2].v = glm::vec3(0.0f, 2.8f, 4.0f);
 		gubo.lightColor[2] = glm::vec4(1.0f, 0.0f, 0.0f, 2.0f);
@@ -484,6 +481,7 @@ protected:
 		// Place coin
 		CoinRot += COIN_ROT_SPEED * deltaT;
 		if(CoinRot > 360.0f) CoinRot = 0.0f;
+
 		World = glm::translate(glm::mat4(1.0f), coinLocations[coinLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
@@ -499,6 +497,7 @@ protected:
 		// Place crown coin
 		CoinRot += COIN_ROT_SPEED * deltaT;
 		if(CoinRot > 360.0f) CoinRot = 0.0f;
+
 		World = glm::translate(glm::mat4(1.0f), coinCrownLocations[coinCrownLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 							 glm::vec3(1.0f, 0.0f, 0.0f));
@@ -515,6 +514,7 @@ protected:
 		// Place thunder coin
 		CoinRot += COIN_ROT_SPEED * deltaT;
 		if(CoinRot > 360.0f) CoinRot = 0.0f;
+
 		World = glm::translate(glm::mat4(1.0f),
 							   coinThunderLocations[coinThunderLocation]);
 		World *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
@@ -570,9 +570,6 @@ protected:
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
-			/*if(debounce){
-				debounce = false;
-			}			std::cout << "SPACE SET DEBOUNCE  " << debounce << "\n";*/
 			rocketDirection.z -= 1.0f;
 
 			glm::mat4 rocketRotationMatrix =
@@ -659,28 +656,27 @@ protected:
 
 		// Prevent crazy bugs
 		if(isnan(rocketPosition.x) || isnan(rocketPosition.y) ||
-		   isnan(rocketPosition.z))
+		   isnan(rocketPosition.z)) {
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
+			rocketCollider.center = rocketPosition;
+		}
 
 		previousKey = currentKey;
 		if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
 			currentKey = true;
-			if(!debounce && currentKey != previousKey){
+			if(!debounce && currentKey != previousKey) {
 				spotlightOn = 1 - spotlightOn;
 				gubo.spotlightOn = spotlightOn;
 				debounce = true;
 				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
-			}else if(debounce && currentKey == previousKey){
+			} else if(debounce && currentKey == previousKey) {
 				debounce = false;
 				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
 			}
-
-			/*spotlightOn = 1 - spotlightOn;
-			gubo.spotlightOn = spotlightOn;*/
-		}else{
+		} else {
 			currentKey = false;
 		}
-		// Camera controls
+
 		getCameraControls();
 
 		if(rocketCameraRotation.y > 89.0f) rocketCameraRotation.y = 89.0f;
@@ -711,8 +707,8 @@ protected:
 		camPos = glm::vec3(camx, camy, camz) + rocketPosition;
 
 		constrainCameraPosition(camPos, SC.bbMap["walln"].min, SC.bbMap["walls"].max);
-
 		View = glm::lookAt(camPos, rocketPosition, glm::vec3(0, 1, 0));
+
 		// Update mvpMat and map the rocket
 		RocketUbo.mMat = baseTrans * World;
 		RocketUbo.mvpMat = Prj * View * World;
