@@ -300,9 +300,9 @@ protected:
 						 static_cast<uint32_t>(MCoinThunder.indices.size()), 1,
 						 0, 0, 0);
 
-		SC.P[SC.PipelineIds["PToon"]]->bind(commandBuffer);
+		SC.P[SC.PipelineIds["PRocket"]]->bind(commandBuffer);
 		MRocket.bind(commandBuffer);
-		DSRocket.bind(commandBuffer, *SC.P[SC.PipelineIds["PToon"]], 0, currentImage);
+		DSRocket.bind(commandBuffer, *SC.P[SC.PipelineIds["PRocket"]], 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MRocket.indices.size()), 1, 0, 0, 0);
 	}
