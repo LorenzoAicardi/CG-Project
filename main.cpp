@@ -45,6 +45,8 @@ struct SphereCollider {
 
 enum RocketState { MOVING, RESTING };
 bool debounce = false;
+bool currentKey = false;
+bool previousKey = false;
 
 
 class ConfigManager : public BaseProject {
@@ -660,19 +662,23 @@ protected:
 		   isnan(rocketPosition.z))
 			rocketPosition = glm::vec3(-1.0f, 2.0f, 4.0f);
 
+		previousKey = currentKey;
 		if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
-			if(!debounce){
+			currentKey = true;
+			if(!debounce && currentKey != previousKey){
 				spotlightOn = 1 - spotlightOn;
 				gubo.spotlightOn = spotlightOn;
 				debounce = true;
 				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
-			}else if(debounce){
+			}else if(debounce && currentKey == previousKey){
 				debounce = false;
 				std::cout << "TAB SET DEBOUNCE  " << debounce << "\n";
 			}
 
 			/*spotlightOn = 1 - spotlightOn;
 			gubo.spotlightOn = spotlightOn;*/
+		}else{
+			currentKey = false;
 		}
 		// Camera controls
 		getCameraControls();
