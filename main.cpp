@@ -80,9 +80,9 @@ protected:
 
 		// Descriptor pool sizes
 		SC.countResources("models/scene.json");
-		uniformBlocksInPool = SC.resCtr.uboInPool + 50;
-		texturesInPool = SC.resCtr.textureInPool + 50;
-		setsInPool = SC.resCtr.dsInPool + 50;
+		uniformBlocksInPool = SC.resCtr.uboInPool + 10;
+		texturesInPool = SC.resCtr.textureInPool + 10;
+		setsInPool = SC.resCtr.dsInPool + 10;
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}

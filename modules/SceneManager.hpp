@@ -169,8 +169,23 @@ public:
 			ifs >> js;
 			ifs.close();
 
-			resCtr.textureInPool = js["textures"].size();
-			resCtr.uboInPool = js["instances"].size();
+			int instances = js["instances"].size();
+			int textures = 0;
+
+			// Count textures
+			for(auto i : js["instances"]) {
+				std::string layoutName = i["layout"];
+				nlohmann::json layouts = js["layouts"];
+				for(auto lt : layouts) {
+					if(lt["name"] == layoutName) {
+						for(auto el : lt["bindings"])
+							if(el["type"] == "img") textures++;
+					}
+				}
+			}
+
+			resCtr.textureInPool = textures;
+			resCtr.uboInPool = 2 * instances;
 			resCtr.dsInPool = js["instances"].size();
 		} catch(const nlohmann::json::exception &e) {
 			std::cout << e.what() << '\n';
