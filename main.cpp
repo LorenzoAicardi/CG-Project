@@ -590,14 +590,14 @@ protected:
 			rocketRotVert = glm::clamp(rocketRotVert, -20.0f, 20.0f);
 		}
 
-		// Gravity (gravity constant can be lowered)
-		if(rocketState == MOVING) {	 // If the rocket is falling apply gravity
+		// Gravity while rocket is moving (gravity constant can be lowered)
+		if(rocketState == MOVING) {
 			rocketVerticalSpeed += GRAVITY_CONSTANT * DELTA_T;
 			// Set terminal fall speed
 			rocketVerticalSpeed = glm::max(rocketVerticalSpeed, 0.1f);
 		}
 
-		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {	// Space only moves me forward
+		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			rocketDirection.z -= 1.0f;
 
 			glm::mat4 rocketRotationMatrix =
