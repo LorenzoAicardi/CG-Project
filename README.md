@@ -10,7 +10,7 @@ Nicolas Benatti _nicolas.benatti@mail.polimi.it_
 ## The project
 
 Our project is a middle-ground between a showcase of rudimentary Physically-Based
-rendering techniques and a minimal game: you will be driving a little toy rocket inside
+Rendering (PBR) techniques and a minimal game: you will be driving a little toy rocket inside
 a bedroom with some floating coins which you have to collect.
 
 Following this minimal approach, there is no score, making it kind of a "zen" experience 😉
